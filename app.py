@@ -1,5 +1,7 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, jsonify, abort
 from registrar_usuarios import insertar_usuario
+from buscar_usuarios import buscar_usuario_por_correo, buscar_usuario_por_id
+
 
 app = Flask(__name__)
 
@@ -27,6 +29,29 @@ def insertar():
 @app.route('/bienvenida')
 def bienvenida():
     return render_template('rincon_del_corcho.html')
+
+@app.route('/admin')
+def admin():
+    return render_template('admin.html')
+
+#buscar usuario por correo
+@app.route('/buscar/<correo>', methods=['GET'])
+def buscar_por_correo(correo):
+    usuario = buscar_usuario_por_correo(correo)
+    if usuario:
+        return jsonify(usuario)
+    else:
+        abort(404, description="Usuario no encontrado")
+
+#buscar usuario por ID
+@app.route('/usuario/<int:id>', methods=['GET'])
+def buscar_por_id(id):
+    usuario = buscar_usuario_por_id(id)
+    if usuario:
+        return jsonify(usuario)
+    else:
+        abort(404, description="Usuario no encontrado")
+
 
 if __name__ == '__main__':
     app.run(debug=True)

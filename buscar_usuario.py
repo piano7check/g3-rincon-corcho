@@ -1,0 +1,32 @@
+from conexion_database import get_connection
+
+def buscar_usuario_por_id(id):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id_usuario, nombre, correo FROM usuarios WHERE id_usuario = ?", (id,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if row:
+            return {"id": row[0], "nombre": row[1], "correo": row[2]}
+        return None
+    except Exception as e:
+        print("Error al buscar por ID:", e)
+        return None
+
+def buscar_usuario_por_correo(correo):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id_usuario, nombre, correo FROM usuarios WHERE correo = ?", (correo,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        if row:
+            return {"id": row[0], "nombre": row[1], "correo": row[2]}
+        return None
+    except Exception as e:
+        print("Error al buscar por correo:", e)
+        return None
+

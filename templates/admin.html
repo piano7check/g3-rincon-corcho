@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administración</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Panel de Administración</h1>
+        <label for="tipoBusqueda">Buscar por:</label>
+        <select id="tipoBusqueda">
+            <option value="correo">Correo</option>
+            <option value="id">ID</option>
+        </select>
+        <input type="text" id="valorBusqueda" placeholder="Introduce el valor">
+        <button onclick="buscarUsuario()">Buscar</button>
+        <div id="resultado" style="margin-top: 20px;"></div>
+        <br>
+        <a href="{{ url_for('bienvenida') }}">Volver al inicio</a>
+    </div>
+
+    <script src="{{ url_for('static', filename='admin.js') }}"></script>
+</body>
+</html>

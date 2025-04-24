@@ -50,3 +50,130 @@ input[type="submit"]:hover {
 .content-container {
     margin-top: 50px;
 }
+
+body {
+    background-color: #f4f4f4;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+.form-container {
+    margin: 50px auto;
+    width: 300px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+}
+
+input[type="text"], input[type="email"], input[type="password"] {
+    width: 90%;
+    padding: 8px;
+    margin: 6px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+input[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+input[type="submit"]:hover {
+    background-color: #45a049;
+}
+.logout-button {
+    background-color: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    margin-top: 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.logout-button:hover {
+    background-color: #c0392b;
+}
+
+.content-container {
+    margin-top: 50px;
+}
+
+.admin-container {
+    max-width: 500px;
+    margin: 60px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+.admin-container h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 25px;
+}
+
+.admin-container label,
+.admin-container select,
+.admin-container input[type="text"] {
+    display: block;
+    width: 100%;
+    margin-bottom: 12px;
+    font-size: 16px;
+}
+
+.admin-container input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.admin-container select {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.admin-container button {
+    background-color: #3498db;
+    color: white;
+    padding: 12px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.admin-container button:hover {
+    background-color: #2980b9;
+}
+
+#resultado {
+    background-color: #f0f0f0;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+.admin-container a {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    color: #555;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.admin-container a:hover {
+    color: #000;
+}
