@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Insertar Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Crear Cuenta</h2>
+        <form action="/insertar" method="POST">
+            <label for="nombre">Nombre:</label><br>
+            <input type="text" name="nombre" required><br><br>
+
+            <label for="correo">Correo:</label><br>
+            <input type="email" name="correo" required><br><br>
+
+            <label for="password">Contraseña:</label><br>
+            <input type="password" name="password" required><br><br>
+
+            <input type="submit" value="Enviar">
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Rincón Del Corcho</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+    <div class="content-container">
+        <h1>¡Bienvenido/a al Rincón Del Corcho!</h1>
+        <p>Gracias por registrarte.</p>
+        
+        <form action="{{ url_for('index') }}" method="get">
+            <input type="submit" value="Cerrar Sesión" class="logout-button">
+        </form>
+    </div>
+</body>
+</html>
+
