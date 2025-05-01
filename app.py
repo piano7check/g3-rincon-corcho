@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for, jsonify, abort
 from registrar_usuarios import insertar_usuario
 from buscar_usuarios import buscar_usuario_por_correo, buscar_usuario_por_id
+from login_usuario import verificar_usuario
 
 
 app = Flask(__name__)
@@ -33,6 +34,19 @@ def bienvenida():
 @app.route('/admin')
 def admin():
     return render_template('admin.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        correo = request.form['correo']
+        password = request.form['password']
+        usuario = verificar_usuario(correo, password)
+        if usuario:
+            return redirect(url_for('bienvenida'))  # o podrías redirigir a admin si es un usuario especial
+        else:
+            return "Correo o contraseña incorrectos", 401
+    return render_template('login.html')
+
 
 #buscar usuario por correo
 @app.route('/buscar/<correo>', methods=['GET'])
