@@ -13,6 +13,10 @@
         <form action="{{ url_for('index') }}" method="get">
             <input type="submit" value="Cerrar Sesión" class="logout-button">
         </form>
+
+        <form action="{{ url_for('perfil') }}" method="get">
+            <input type="submit" value="Ver Perfil" class="logout-button">
+        </form>
         
         <form action="{{ url_for('admin') }}" method="get">
             <input type="submit" value="Administrador" class="admin-button">

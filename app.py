@@ -1,10 +1,12 @@
-from flask import Flask, request, render_template, redirect, url_for, jsonify, abort
+from flask import Flask, request, render_template, redirect, url_for, jsonify, abort, session
 from registrar_usuarios import insertar_usuario
 from buscar_usuarios import buscar_usuario_por_correo, buscar_usuario_por_id
 from login_usuario import verificar_usuario
+from editar_usuario import editar_usuario
 
 
 app = Flask(__name__)
+app.secret_key = 'tu_clave_secreta'  # Cambia esto por una clave secreta más segura
 
 @app.route('/')
 def index():
@@ -42,10 +44,40 @@ def login():
         password = request.form['password']
         usuario = verificar_usuario(correo, password)
         if usuario:
+            session['id'] = usuario['id']
             return redirect(url_for('bienvenida'))  # o podrías redirigir a admin si es un usuario especial
         else:
             return "Correo o contraseña incorrectos", 401
     return render_template('login.html')
+
+#Perfil
+@app.route('/perfil')
+def perfil():
+    id_usuario = session.get('id')
+    if not id_usuario:
+        return redirect(url_for('login'))
+    
+    usuario = buscar_usuario_por_id(id_usuario)
+    if not usuario:
+        return "Usuario no encontrado", 404
+    
+    return render_template('perfil.html', usuario=usuario)
+    
+#editar usuario
+@app.route('/editar', methods= ['GET', 'POST'])
+def editar_usuario_route():
+    if request.method == 'POST':
+        id_usuario = session.get('id')
+        nuevo_nombre =  request.form['nombre']
+        nuevo_correo = request.form['correo']
+        
+        if editar_usuario(id_usuario, nuevo_nombre, nuevo_correo):
+            return redirect(url_for('bienvenida'))
+        
+        else:
+            return "Error al editar el usuario", 400
+    else:
+        return render_template('editar_usuario.html')
 
 
 #buscar usuario por correo

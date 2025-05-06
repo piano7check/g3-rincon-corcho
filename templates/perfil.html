@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil de Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Mi Perfil</h2>
+        <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
+        <p><strong>Correo:</strong> {{ usuario.correo }}</p>
+
+        <form action="{{ url_for('editar_usuario_route') }}" method="get">
+            <input type="submit" value="Editar Usuario" class="logout-button">
+        </form>
+        <br>
+        <a href="{{ url_for('bienvenida') }}">Volver al inicio</a>
+    </div>
+</body>
+</html>
