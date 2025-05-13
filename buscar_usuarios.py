@@ -30,3 +30,16 @@ def buscar_usuario_por_correo(correo):
         print("Error al buscar por correo:", e)
         return None
 
+def correo_existe(correo):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM usuarios WHERE correo = ?", (correo,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+        return row is not None  # Devuelve True si el correo existe, False si no
+    except Exception as e:
+        print("Error al verificar correo:", e)
+        return False
+
