@@ -1,5 +1,8 @@
 body {
-    background-color: #f4f4f4;
+    background-image: url('/static/fondo.png');
+    background-size: 100% 475%; /* Puedes probar con 100%, 120%, 150%, etc. */
+    background-repeat: no-repeat;
+    background-position: top center;
     font-family: Arial, sans-serif;
     text-align: center;
 }
@@ -51,17 +54,11 @@ input[type="submit"]:hover {
     margin-top: 50px;
 }
 
-body {
-    background-color: #f4f4f4;
-    font-family: Arial, sans-serif;
-    text-align: center;
-}
-
 .form-container {
     margin: 50px auto;
     width: 300px;
     padding: 20px;
-    background-color: white;
+    background-color: rgba(204, 185, 152, 0.85);;
     border-radius: 12px;
     box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
 }
@@ -75,7 +72,7 @@ input[type="text"], input[type="email"], input[type="password"] {
 }
 
 input[type="submit"] {
-    background-color: #4CAF50;
+    background-color: rgba(204, 185, 152, 0.85);;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -84,7 +81,7 @@ input[type="submit"] {
 }
 
 input[type="submit"]:hover {
-    background-color: #45a049;
+    background-color: rgba(204, 185, 152, 1);;
 }
 .logout-button {
     background-color: #e74c3c;
@@ -108,11 +105,12 @@ input[type="submit"]:hover {
     max-width: 500px;
     margin: 60px auto;
     padding: 30px;
-    background-color: #ffffff;
+    background-color: rgba(204, 185, 152, 0.85); /* <- Transparencia añadida */
     border-radius: 15px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     text-align: left;
 }
+
 
 .admin-container h1 {
     text-align: center;
@@ -131,18 +129,18 @@ input[type="submit"]:hover {
 
 .admin-container input[type="text"] {
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #000000;
     border-radius: 8px;
 }
 
 .admin-container select {
     padding: 10px;
     border-radius: 8px;
-    border: 1px solid #ccc;
+    border: 1px solid #000000;
 }
 
 .admin-container button {
-    background-color: #3498db;
+    background-color: rgb(204, 185, 152);
     color: white;
     padding: 12px;
     width: 100%;
@@ -154,7 +152,7 @@ input[type="submit"]:hover {
 }
 
 .admin-container button:hover {
-    background-color: #2980b9;
+    background-color: #fdffffc0;
 }
 
 #resultado {
@@ -169,11 +167,99 @@ input[type="submit"]:hover {
     display: block;
     text-align: center;
     margin-top: 20px;
-    color: #555;
+    color: #ffffff;
     text-decoration: none;
     font-weight: bold;
 }
 
-.admin-container a:hover {
-    color: #000;
+.navbar {
+    width: 100%;
+    background-color: rgb(204, 185, 152, 0.85);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 4px solid #ccc;
+    box-sizing: border-box;
+}
+
+.navbar-title {
+    flex-grow: 1;
+    text-align: center;
+    font-size: 20px;
+    color: white;
+    font-weight: bold;
+    margin: 0 10px;
+}
+
+.navbar-left,
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.menu-icon, .profile-icon {
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+}
+
+/* Efecto de rotación para el icono de menú */
+.menu-icon {
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+    transition: transform 0.3s ease;
+}
+
+.menu-icon.rotated {
+    transform: rotate(45deg);
+}
+
+.fa-bars.rotated {
+    transform: rotate(90deg);
+    transition: transform 0.3s ease;
+}
+
+.dropdown-menu, .profile-menu {
+    position: absolute;
+    background-color: rgb(204, 185, 152);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: none;
+    flex-direction: column;
+    z-index: 10;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.dropdown-menu.show, .profile-menu.show {
+    display: flex;
+}
+
+.dropdown-menu {
+    top: 50px;
+    left: 20px;
+}
+
+.profile-menu {
+    top: 50px;
+    right: 20px;
+}
+
+.dropdown-menu a,
+.profile-menu button {
+    text-decoration: none;
+    color: #333;
+    padding: 8px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+}
+
+.dropdown-menu a:hover,
+.profile-menu button:hover {
+    background-color: #f0f0f0;
+    border-radius: 5px;
 }

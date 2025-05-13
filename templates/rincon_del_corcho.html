@@ -4,23 +4,43 @@
     <meta charset="UTF-8">
     <title>Rincón Del Corcho</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
-    <div class="content-container">
-        <h1>¡Bienvenido/a al Rincón Del Corcho!</h1>
-        <p>Gracias por registrarte.</p>
-        
-        <form action="{{ url_for('index') }}" method="get">
-            <input type="submit" value="Cerrar Sesión" class="logout-button">
-        </form>
+    <header class="navbar">
+        <div class="menu-icon" onclick="toggleMenu()">
+            <i class="fas fa-bars"></i>
+        </div>
 
-        <form action="{{ url_for('perfil') }}" method="get">
-            <input type="submit" value="Ver Perfil" class="logout-button">
-        </form>
-        
+        <span class="navbar-title">Bienvenido al Rincón del Corcho</span>
+
+        <div class="dropdown-menu" id="menuDropdown">
+            <a href="#">Buscar</a>
+            <a href="#">Subir Documentos</a>
+            <a href="#">Favoritos</a>
+            <a href="#">Categorías</a>
+        </div>
+
+        <div class="profile-icon" onclick="toggleProfile()">
+            <i class="fas fa-user"></i>
+        </div>
+        <div class="profile-menu" id="profileDropdown">
+            <form action="{{ url_for('perfil') }}" method="get">
+                <button type="submit">Ver Perfil</button>
+            </form>
+            <form action="{{ url_for('index') }}" method="get">
+                <button type="submit">Cerrar Sesión</button>
+            </form>
+        </div>
+    </header>
+
+    <div class="content-container">
+
         <form action="{{ url_for('admin') }}" method="get">
             <input type="submit" value="Administrador" class="admin-button">
         </form>
     </div>
+
+    <script src="{{ url_for('static', filename='menu.js') }}"></script>
 </body>
 </html>
