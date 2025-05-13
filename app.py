@@ -64,16 +64,29 @@ def login():
         if not password:
             return render_template('login.html', error="Contraseña requerida")
 
+        ADMIN_TOKEN = "secreto123"  # Token para acceso de administrador
+        modo_admin = request.form.get('modo_admin')  # None si no está marcado
+        token = request.form.get('token', '')  # Vacío si no se ingresó
+
         # Verificar usuario
         usuario = verificar_usuario(correo, password)
         if usuario:
             session['id'] = usuario['id']
-            return redirect(url_for('bienvenida'))
+
+            # Si eligió modo administrador
+            if modo_admin:
+                if token == ADMIN_TOKEN:
+                    return redirect(url_for('admin'))  # Redirige al panel admin
+                else:
+                    return render_template('login.html', error="Token de administrador incorrecto")
+            else:
+                return redirect(url_for('bienvenida'))  # Usuario normal
+
         else:
-            # Mostrar mensaje de error en la misma página
             return render_template('login.html', error="Correo o contraseña incorrectos")
 
     return render_template('login.html')
+
 
 
 #Perfil
