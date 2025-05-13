@@ -7,6 +7,9 @@
 </head>
 <body>
     <div class="form-container">
+          <!-- Imagen de usuario -->
+        <img src="{{ url_for('static', filename='imagenes/usuario.png') }}" alt="Imagen de usuario" width="150">
+
         <h2>Mi Perfil</h2>
         <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
         <p><strong>Correo:</strong> {{ usuario.correo }}</p>
@@ -19,3 +22,4 @@
     </div>
 </body>
 </html>
+<img src="{{ url_for('static', filename='imagenes/usuario.png') }}" alt="Imagen de usuario" width="150">

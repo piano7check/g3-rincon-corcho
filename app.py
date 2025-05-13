@@ -1,8 +1,9 @@
 from flask import Flask, request, render_template, redirect, url_for, jsonify, abort, session
 from registrar_usuarios import insertar_usuario
-from buscar_usuarios import buscar_usuario_por_correo, buscar_usuario_por_id
+from buscar_usuarios import buscar_usuario_por_correo, buscar_usuario_por_id, correo_existe
 from login_usuario import verificar_usuario
 from editar_usuario import editar_usuario
+from validaciones import es_nombre_valido, es_email_valido, es_password_seguro
 
 
 app = Flask(__name__)
@@ -24,10 +25,24 @@ def insertar():
         correo = request.form['correo']
         password = request.form['password']
 
+    # Validaciones
+    if not es_nombre_valido(nombre):
+        return render_template('formulario.html', error="Nombre inválido")
+    if not es_email_valido(correo):
+        return render_template('formulario.html', error="Correo inválido")
+    if not es_password_seguro(password):
+        return render_template('formulario.html', error="Contraseña insegura")
+
+    # Verificar si el correo ya existe
+    if correo_existe(correo):
+        return render_template('formulario.html', error="El correo ya está registrado")
+
+    # Intentar insertar usuario
     if insertar_usuario(nombre, correo, password):
         return redirect(url_for('bienvenida'))
     else:
-        return "Hubo un error al insertar el usuario"
+        # Mostrar mensaje de error en la misma página
+        return render_template('formulario.html', error="Hubo un error al insertar el usuario")
 
 @app.route('/bienvenida')
 def bienvenida():
@@ -42,13 +57,24 @@ def login():
     if request.method == 'POST':
         correo = request.form['correo']
         password = request.form['password']
+
+        # Validaciones
+        if not es_email_valido(correo):
+            return render_template('login.html', error="Correo inválido")
+        if not password:
+            return render_template('login.html', error="Contraseña requerida")
+
+        # Verificar usuario
         usuario = verificar_usuario(correo, password)
         if usuario:
             session['id'] = usuario['id']
-            return redirect(url_for('bienvenida'))  # o podrías redirigir a admin si es un usuario especial
+            return redirect(url_for('bienvenida'))
         else:
-            return "Correo o contraseña incorrectos", 401
+            # Mostrar mensaje de error en la misma página
+            return render_template('login.html', error="Correo o contraseña incorrectos")
+
     return render_template('login.html')
+
 
 #Perfil
 @app.route('/perfil')
@@ -64,20 +90,29 @@ def perfil():
     return render_template('perfil.html', usuario=usuario)
     
 #editar usuario
-@app.route('/editar', methods= ['GET', 'POST'])
+@app.route('/editar', methods=['GET', 'POST'])
 def editar_usuario_route():
     if request.method == 'POST':
         id_usuario = session.get('id')
-        nuevo_nombre =  request.form['nombre']
-        nuevo_correo = request.form['correo']
-        
+        if not id_usuario:
+            return redirect(url_for('login'))
+
+        nuevo_nombre = request.form.get('nombre', '').strip()
+        nuevo_correo = request.form.get('correo', '').strip()
+
+        # Validaciones de nombre y correo
+        if not es_nombre_valido(nuevo_nombre):
+            return "Nombre inválido", 400
+        if not es_email_valido(nuevo_correo):
+            return "Correo inválido", 400
+
+        # Actualizar usuario segun el usuario logueado
         if editar_usuario(id_usuario, nuevo_nombre, nuevo_correo):
             return redirect(url_for('bienvenida'))
-        
         else:
             return "Error al editar el usuario", 400
-    else:
-        return render_template('editar_usuario.html')
+
+    return render_template('editar_usuario.html')
 
 
 #buscar usuario por correo

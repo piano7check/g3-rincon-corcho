@@ -18,10 +18,18 @@
             <label for="password">Contraseña:</label><br>
             <input type="password" name="password" required><br><br>
 
+            <!-- Mostrar mensaje de error si existe -->
+            {% if error %}
+            <div class="error-message formulario-error">
+                {{ error }}
+            </div>
+            {% endif %}
+
             <input type="submit" value="Enviar">
             <br><br>
             <a href="{{ url_for('login') }}">¿Ya tienes cuenta? Inicia sesión</a>
         </form>
     </div>
+    <script src="{{ url_for('static', filename='validaciones.js') }}"></script>
 </body>
 </html>

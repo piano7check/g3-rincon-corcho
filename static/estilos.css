@@ -263,3 +263,23 @@ input[type="submit"]:hover {
     background-color: #f0f0f0;
     border-radius: 5px;
 }
+
+/* Estilo para los mensajes de error */
+.error-message {
+    color: red;
+    font-size: 12px;
+    margin-top: 5px; /* Espacio entre el campo y el mensaje */
+    margin-bottom: 0px; /* Espacio entre el mensaje y el siguiente elemento */
+    display: block;
+    text-align: left;
+}
+
+/* Estilo específico para errores en la página de formulario */
+.formulario-page .formulario-error {
+    background-color: #ffcccc; /* Fondo más claro */
+    border-color: #ff6666; /* Borde más oscuro */
+    font-size: 12px; /* Tamaño de fuente más pequeño */
+    margin-bottom: 10px; /* Espacio entre el mensaje y el siguiente elemento */
+}
+
+
