@@ -1,7 +1,7 @@
 import pyodbc
 
 def get_connection():
-    server = r'PARZIVAL\SQLEXPRESS01'# JHOSEP\MSSQLSERVER01
+    server = r'PC-DAVID'# JHOSEP\MSSQLSERVER01
     database = 'bd_corcho'
     driver = '{ODBC Driver 17 for SQL Server}'
     conn_str = f'DRIVER={driver};SERVER={server};DATABASE={database};Trusted_Connection=yes;'
