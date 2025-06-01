@@ -1,10 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const form = document.getElementById("registro-form");
-    const name = document.getElementById("nombre");
+    const form = document.getElementById("editar-form");
+
+    const nombre = document.getElementById("nombre");
     const correo = document.getElementById("correo");
     const password = document.getElementById("password");
 
-    const nameError = document.getElementById("nombre-error");
+    const nombreError = document.getElementById("nombre-error");
     const correoError = document.getElementById("correo-error");
     const passwordError = document.getElementById("password-error");
 
@@ -17,25 +18,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function validarPassword(valor) {
-        return /^(?=.*[0-9\W]).{8,}$/.test(valor);
+        return valor === "" || /^(?=.*[0-9\W]).{8,}$/.test(valor);
     }
 
     function limpiarError(input, span) {
         input.classList.remove("error");
-        input.classList.add("valid"); // Agrega esta línea
+        input.classList.add("valid");
         span.textContent = "";
     }
 
     function mostrarError(input, span, mensaje) {
-        input.classList.remove("valid"); // Asegúrate de quitar el verde si antes era válido
+        input.classList.remove("valid");
         input.classList.add("error");
-    span.textContent = mensaje;
+        span.textContent = mensaje;
     }
-    
-    name.addEventListener("input", () => {
-        validarNombre(name.value)
-            ? limpiarError(name, nameError)
-            : mostrarError(name, nameError, "Solo letras y espacios.");
+
+    nombre.addEventListener("input", () => {
+        validarNombre(nombre.value)
+            ? limpiarError(nombre, nombreError)
+            : mostrarError(nombre, nombreError, "Solo letras y espacios.");
     });
 
     correo.addEventListener("input", () => {
@@ -51,36 +52,25 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     form.addEventListener("submit", function (e) {
-        e.preventDefault(); // detenemos siempre para controlar
-
         let valido = true;
-        const contenedor = form.closest(".form-container");
-        contenedor.classList.remove("form-success");
 
-        if (!validarNombre(name.value)) {
-            mostrarError(name, nameError, "Solo letras y espacios.");
+        if (!validarNombre(nombre.value)) {
+            mostrarError(nombre, nombreError, "Solo letras y espacios.");
             valido = false;
-        } else {
-            limpiarError(name, nameError);
         }
 
         if (!validarCorreo(correo.value)) {
             mostrarError(correo, correoError, "Debe terminar en @uab.edu.bo");
             valido = false;
-        } else {
-            limpiarError(correo, correoError);
         }
 
         if (!validarPassword(password.value)) {
             mostrarError(password, passwordError, "Mínimo 8 caracteres con símbolo o número.");
             valido = false;
-        } else {
-            limpiarError(password, passwordError);
         }
 
-        if (valido) {
-            contenedor.classList.add("form-success");
-            setTimeout(() => form.submit(), 300);
+        if (!valido) {
+            e.preventDefault();
         }
     });
 });

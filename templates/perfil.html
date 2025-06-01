@@ -2,24 +2,53 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Perfil de Usuario</title>
+    <title>Mi Perfil</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
 </head>
 <body>
-    <div class="form-container">
-          <!-- Imagen de usuario -->
-        <img src="{{ url_for('static', filename='imagenes/usuario.png') }}" alt="Imagen de usuario" width="150">
+<div class="perfil-bloque" style="background-color: {{ usuario.color_perfil if usuario.color_perfil else '#f5f5f5' }}">
+    <h2>Perfil</h2>
 
-        <h2>Mi Perfil</h2>
-        <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
-        <p><strong>Correo:</strong> {{ usuario.correo }}</p>
-
-        <form action="{{ url_for('editar_usuario_route') }}" method="get">
-            <input type="submit" value="Editar Usuario" class="logout-button">
-        </form>
-        <br>
-        <a href="{{ url_for('bienvenida') }}">Volver al inicio</a>
+    <div class="perfil-imagen">
+        <img src="{{ url_for('static', filename='imagenes/perfiles/' + usuario.foto if usuario.foto else 'imagenes/perfil_default.png') }}" alt="Foto de perfil">
     </div>
+
+    <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
+    <p><strong>Correo:</strong> {{ usuario.correo }}</p>
+
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('editar_usuario_route') }}" class="config-option">Editar Perfil</a>
+        <form action="{{ url_for('eliminar_cuenta') }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar tu cuenta?')">
+            <button type="submit" class="config-option eliminar">Eliminar Cuenta</button>
+        </form>
+        <a href="{{ url_for('logout') }}" class="config-option">Cerrar Sesión</a>
+    </div>
+
+    <h3 style="margin-top: 40px;">📂 Mis Carpetas</h3>
+    <div class="carpetas-grid">
+        {% if carpetas %}
+            {% for carpeta in carpetas %}
+                <div class="carpeta-card">
+                    <h4>{{ carpeta.nombre }}</h4>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="carpeta-card">
+                <p>No tienes ninguna carpeta.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+    <script>
+        function toggleConfiguracion() {
+            const panel = document.getElementById('config-panel');
+            panel.classList.toggle('show');
+        }
+
+        function confirmarEliminacion() {
+            return confirm("¿Seguro que deseas eliminar tu cuenta? Esta acción no se puede deshacer.");
+        }
+    </script>
 </body>
 </html>
-<img src="{{ url_for('static', filename='imagenes/usuario.png') }}" alt="Imagen de usuario" width="150">

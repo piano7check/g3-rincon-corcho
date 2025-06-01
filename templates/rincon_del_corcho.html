@@ -2,45 +2,56 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Rincón Del Corcho</title>
+    <title>Rincón del Corcho</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
     <header class="navbar">
-        <div class="menu-icon" onclick="toggleMenu()">
-            <i class="fas fa-bars"></i>
+        <div class="navbar-left">
+            <span class="navbar-title">📚 Rincón del Corcho</span>
         </div>
-
-        <span class="navbar-title">Bienvenido al Rincón del Corcho</span>
-
-        <div class="dropdown-menu" id="menuDropdown">
-            <a href="#">Buscar</a>
-            <a href="#">Subir Documentos</a>
-            <a href="#">Favoritos</a>
-            <a href="#">Categorías</a>
-        </div>
-
-        <div class="profile-icon" onclick="toggleProfile()">
-            <i class="fas fa-user"></i>
-        </div>
-        <div class="profile-menu" id="profileDropdown">
+        <div class="navbar-right">
             <form action="{{ url_for('perfil') }}" method="get">
-                <button type="submit">Ver Perfil</button>
+                <button class="profile-button">👤 Mi Perfil</button>
             </form>
             <form action="{{ url_for('index') }}" method="get">
-                <button type="submit">Cerrar Sesión</button>
+                <button class="logout-button">🚪 Cerrar Sesión</button>
             </form>
         </div>
     </header>
 
-    <div class="content-container">
+    <main class="main-container">
+        <h2 class="section-title">Explora por Materias</h2>
+        <div class="card-grid">
+            <!-- Estas tarjetas pueden generarse dinámicamente con Jinja más adelante -->
+            <div class="card">
+                <h3>📐 Matemáticas</h3>
+                <p>12 documentos</p>
+                <button>Ver más</button>
+            </div>
+            <div class="card">
+                <h3>🧪 Física</h3>
+                <p>8 documentos</p>
+                <button>Ver más</button>
+            </div>
+            <div class="card">
+                <h3>💻 Programación</h3>
+                <p>15 documentos</p>
+                <button>Ver más</button>
+            </div>
+            <div class="card">
+                <h3>📊 Estadística</h3>
+                <p>5 documentos</p>
+                <button>Ver más</button>
+            </div>
+        </div>
 
-        <form action="{{ url_for('admin') }}" method="get">
-            <input type="submit" value="Administrador" class="admin-button">
-        </form>
-    </div>
-
-    <script src="{{ url_for('static', filename='menu.js') }}"></script>
+        <div class="upload-section">
+            <form action="/subir-documento" method="get">
+                <button class="upload-button">📤 Subir Documento</button>
+            </form>
+        </div>
+    </main>
 </body>
 </html>

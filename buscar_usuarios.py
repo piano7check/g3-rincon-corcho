@@ -4,12 +4,17 @@ def buscar_usuario_por_id(id):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT id_usuario, nombre, correo FROM usuarios WHERE id_usuario = ?", (id,))
+        cursor.execute("SELECT id_usuario, nombre, correo, foto FROM usuarios WHERE id_usuario = ?", (id,))
         row = cursor.fetchone()
         cursor.close()
         conn.close()
         if row:
-            return {"id": row[0], "nombre": row[1], "correo": row[2]}
+            return {
+                "id": row[0],
+                "nombre": row[1],
+                "correo": row[2],
+                "foto": row[3]
+            }
         return None
     except Exception as e:
         print("Error al buscar por ID:", e)
