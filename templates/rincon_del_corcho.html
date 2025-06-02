@@ -15,43 +15,177 @@
             <form action="{{ url_for('perfil') }}" method="get">
                 <button class="profile-button">👤 Mi Perfil</button>
             </form>
-            <form action="{{ url_for('index') }}" method="get">
+            <form action="{{ url_for('logout') }}" method="get">
                 <button class="logout-button">🚪 Cerrar Sesión</button>
             </form>
         </div>
     </header>
 
     <main class="main-container">
+        {# Mensajes Flash #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category, message in messages %}
+                    <li class="{{ category }} {{ 'success' if category == 'success' else 'error' if category == 'error' else 'warning' if category == 'warning' else 'info' }}">
+                        {{ message }}
+                    </li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
         <h2 class="section-title">Explora por Materias</h2>
         <div class="card-grid">
-            <!-- Estas tarjetas pueden generarse dinámicamente con Jinja más adelante -->
-            <div class="card">
-                <h3>📐 Matemáticas</h3>
-                <p>12 documentos</p>
-                <button>Ver más</button>
-            </div>
-            <div class="card">
-                <h3>🧪 Física</h3>
-                <p>8 documentos</p>
-                <button>Ver más</button>
-            </div>
-            <div class="card">
-                <h3>💻 Programación</h3>
-                <p>15 documentos</p>
-                <button>Ver más</button>
-            </div>
-            <div class="card">
-                <h3>📊 Estadística</h3>
-                <p>5 documentos</p>
-                <button>Ver más</button>
-            </div>
+            {# Generación dinámica de tarjetas de materia #}
+            {% if materias %}
+                {% for materia in materias %}
+                <div class="card">
+                    {# materia[1] es nombre_materia, materia[2] es semestre #}
+                    <h3>{{ materia[1] }}</h3> 
+                    <p>Semestre: {{ materia[2] }}</p> {# Muestra el semestre #}
+                    <p>0 documentos</p> {# Esto aún es un marcador de posición, para el conteo real necesitarías más lógica en app.py #}
+                    <button>Ver más</button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No hay materias disponibles.</p>
+            {% endif %}
         </div>
 
+        {# Botón para abrir el modal de subir documento #}
         <div class="upload-section">
-            <form action="/subir-documento" method="get">
-                <button class="upload-button">📤 Subir Documento</button>
-            </form>
+            <button class="upload-button" id="openUploadModal">📤 Subir Documento</button>
+        </div>
+
+        {# Sección para listar documentos subidos #}
+        <h2 class="section-title" style="margin-top: 40px;">Documentos Recientes</h2>
+        <div class="documents-list">
+            {% if documentos %}
+                <ul>
+                    {% for documento in documentos %}
+                    <li class="document-item">
+                        <span class="document-info">
+                            <strong>{{ documento.nombre_documento }}</strong> <br>
+                            Subido por: {{ documento.nombre_usuario }} <br>
+                            Materia: {{ documento.nombre_materia }} ({{ documento.semestre }}) <br> {# Muestra el semestre #}
+                            Fecha: {{ documento.fecha_subida.strftime('%Y-%m-%d %H:%M') }}
+                        </span>
+                        <a href="{{ url_for('descargar_documento', documento_id=documento.id_documento) }}" class="download-btn">
+                            <i class="fas fa-download"></i> Descargar
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No hay documentos subidos aún.</p>
+            {% endif %}
         </div>
     </main>
+
+    {# Modal para Subir Documento #}
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Subir Nuevo Documento</h2>
+            <form action="{{ url_for('subir_documento') }}" method="POST" enctype="multipart/form-data">
+                <label for="nombre_documento_input">Nombre del Documento:</label>
+                <input type="text" id="nombre_documento_input" name="nombre_documento_input" placeholder="Ej. Apuntes de Cálculo I" required>
+
+                <label for="documento_file">Selecciona el archivo PDF:</label>
+                <input type="file" id="documento_file" name="documento_file" accept=".pdf" required>
+
+                <label for="materia_semestre">Semestre al que pertenece:</label>
+                <select id="materia_semestre" name="materia_semestre" required>
+                    <option value="">-- Selecciona un Semestre --</option>
+                    {# Las opciones se cargarán con JavaScript #}
+                </select>
+
+                <label for="materia_nombre">Materia a la que pertenece:</label>
+                <select id="materia_nombre" name="materia_nombre" required disabled>
+                    <option value="">-- Selecciona una Materia --</option>
+                    {# Las opciones se cargarán con JavaScript después de seleccionar un semestre #}
+                </select>
+                
+                <button type="submit" class="submit-upload-btn">Subir Documento</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Lógica para el modal de subir documento
+        var modal = document.getElementById("uploadModal");
+        var btn = document.getElementById("openUploadModal");
+        var span = document.getElementsByClassName("close-button")[0];
+
+        btn.onclick = function() {
+            modal.style.display = "block";
+            loadSemestres(); // Carga los semestres cuando se abre el modal
+        }
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // --- Lógica para cargar semestres y materias dinámicamente ---
+        const semestreSelect = document.getElementById('materia_semestre');
+        const materiaSelect = document.getElementById('materia_nombre');
+
+        // Función para cargar los semestres en el select
+        async function loadSemestres() {
+            try {
+                const response = await fetch('/obtener_semestres_unicos_api'); // Usar la nueva ruta API
+                const semestres = await response.json();
+
+                semestreSelect.innerHTML = '<option value="">-- Selecciona un Semestre --</option>';
+                semestres.forEach(semestre => {
+                    const option = document.createElement('option');
+                    option.value = semestre;
+                    option.textContent = semestre;
+                    semestreSelect.appendChild(option);
+                });
+                materiaSelect.innerHTML = '<option value="">-- Selecciona una Materia --</option>'; // Limpiar materias
+                materiaSelect.disabled = true; // Deshabilitar materia hasta que se elija semestre
+            } catch (error) {
+                console.error('Error al cargar semestres:', error);
+                alert('Error al cargar la lista de semestres. Revisa la consola para más detalles.');
+            }
+        }
+
+        // Event listener para cuando cambia el semestre seleccionado
+        semestreSelect.addEventListener('change', async () => {
+            const selectedSemestre = semestreSelect.value;
+            materiaSelect.innerHTML = '<option value="">-- Selecciona una Materia --</option>'; // Limpiar opciones
+            materiaSelect.disabled = true; // Deshabilitar por defecto
+
+            if (selectedSemestre) {
+                try {
+                    const response = await fetch(`/obtener_materias_por_semestre_api/${selectedSemestre}`); // Usar la nueva ruta API
+                    const materias = await response.json();
+
+                    materias.forEach(materia => {
+                        const option = document.createElement('option');
+                        option.value = materia.nombre; // El valor será el nombre de la materia
+                        option.textContent = materia.nombre; // El texto visible será el nombre de la materia
+                        materiaSelect.appendChild(option);
+                    });
+                    materiaSelect.disabled = false; // Habilitar select de materia
+                } catch (error) {
+                    console.error('Error al cargar materias:', error);
+                    alert('Error al cargar las materias para el semestre seleccionado. Revisa la consola para más detalles.');
+                }
+            }
+        });
+
+        // Asegúrate de que los selects estén en el estado correcto al cargar la página
+        materiaSelect.disabled = true; // Deshabilitar materia por defecto si no hay semestre seleccionado
+
+    </script>
 </body>
 </html>
