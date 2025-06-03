@@ -1,4 +1,4 @@
-# app.py
+
 from flask import Flask, request, render_template, redirect, url_for, jsonify, abort, session, flash, send_file
 from werkzeug.utils import secure_filename
 import os
@@ -20,9 +20,8 @@ from conexion_database import get_connection # Asumo que esta función existe en
 
 
 app = Flask(__name__)
-# ¡IMPORTANTE! Cambia esto por una clave secreta más segura y compleja para producción.
 # Puedes generar una con: os.urandom(24).hex()
-app.secret_key = 'super_secreta_y_compleja_clave_para_tu_app' 
+app.secret_key = 'secreto123' 
 
 # --- Funciones de Ayuda para la Base de Datos ---
 
@@ -92,7 +91,7 @@ def login():
 @app.route('/registro')
 def registro():
     """Renderiza la página de registro de usuarios (formulario.html)."""
-    return render_template('formulario.html') # Asegúrate de que este sea el nombre de tu archivo HTML de registro
+    return render_template('formulario.html') 
 
 @app.route('/insertar', methods=['POST'])
 def insertar():
