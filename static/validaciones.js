@@ -83,4 +83,24 @@ document.addEventListener("DOMContentLoaded", function () {
             setTimeout(() => form.submit(), 300);
         }
     });
+
+// Validación al perder el foco en el campo de nombre
+    name.addEventListener("blur", async function () {
+        if (!validarNombre(name.value)) {
+            mostrarError(name, nameError, "Solo letras y espacios.");
+        } else {
+            const nombreExiste = await verificarNombre(name.value);
+            if (nombreExiste) {
+                mostrarError(name, nameError, "El nombre ya está registrado, ingrese otro.");
+            } else {
+                limpiarError(name, nameError);
+            }
+        }
+    });
 });
+
+// Función para verificar si el nombre ya existe en la base de datos
+async function verificarNombre(nombre) {
+    const response = await fetch(`/buscar_nombre/${encodeURIComponent(nombre)}`);
+    return response.ok; // true si el nombre existe
+}

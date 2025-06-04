@@ -1,4 +1,3 @@
-
 from flask import Flask, request, render_template, redirect, url_for, jsonify, abort, session, flash, send_file
 from werkzeug.utils import secure_filename
 import os
@@ -7,9 +6,8 @@ import io  # Importar io para manejar datos binarios como archivos
 import pyodbc # Importar pyodbc para la conexión a SQL Server
 
 # Importaciones de tus módulos existentes
-# Asegúrate de que estos archivos (.py) existan en la misma carpeta que app.py
 from registrar_usuarios import insertar_usuario
-from buscar_usuarios import buscar_usuario_por_correo, buscar_usuario_por_id, correo_existe
+from buscar_usuarios import buscar_usuario_por_correo, buscar_usuario_por_id, correo_existe, buscar_usuario_por_nombre
 from login_usuario import verificar_usuario # Asumo que esta es la función que verifica en la DB
 from editar_usuario import editar_usuario
 from validaciones import es_nombre_valido, es_email_valido, es_password_seguro
@@ -112,6 +110,10 @@ def insertar():
     # Validaciones de los datos de registro
     if not es_nombre_valido(nombre):
         flash("Nombre inválido. Solo se permiten letras y espacios.", "error")
+        return render_template('formulario.html')
+    # Validación de nombre duplicado
+    if buscar_usuario_por_nombre(nombre):
+        flash("El nombre ya está registrado. Por favor, utiliza otro.", "error")
         return render_template('formulario.html')
     if not es_email_valido(correo):
         flash("Correo inválido.", "error")
@@ -629,6 +631,14 @@ def obtener_materias_por_semestre_api(semestre):
         if conn:
             conn.close()
     return jsonify(materias_filtradas)
+# API para buscar usuarios por nombre para validar nombre desde JS
+@app.route('/buscar_nombre/<nombre>', methods=['GET'])
+def buscar_por_nombre_api(nombre):
+    usuario = buscar_usuario_por_nombre(nombre)
+    if usuario:
+        return jsonify(usuario)
+    else:
+        abort(404, description="Usuario no encontrado")
 
 if __name__ == '__main__':
     # Ejecuta la aplicación en modo depuración (debug=True)

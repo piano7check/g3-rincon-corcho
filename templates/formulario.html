@@ -9,10 +9,10 @@
     <div class="form-container">
         <h2>Crear Cuenta</h2>
 
-        <form action="/insertar" method="POST" id="registro-form">
-            <label for="nombre">Nombre:</label>
-            <input type="text" name="nombre" id="nombre" placeholder="Tu nombre completo" required>
-            <span class="error-message" id="nombre-error"></span>
+        <form id="registro-form" action="/insertar" method="POST">
+            <label for="nombre">Nombre:</label><br>
+            <input type="text" id="nombre" name="nombre" required placeholder="Ingrese su nombre completo">
+            <span id="nombre-error" class="error-message"></span>
 
             <label for="correo">Correo institucional:</label>
             <input type="email" name="correo" id="correo" placeholder="ejemplo@uab.edu.bo" required>
