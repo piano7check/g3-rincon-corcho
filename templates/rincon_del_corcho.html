@@ -68,12 +68,26 @@
                         <span class="document-info">
                             <strong>{{ documento.nombre_documento }}</strong> <br>
                             Subido por: {{ documento.nombre_usuario }} <br>
-                            Materia: {{ documento.nombre_materia }} ({{ documento.semestre }}) <br> {# Muestra el semestre #}
+                            Materia: {{ documento.nombre_materia }} ({{ documento.semestre }}) <br>
                             Fecha: {{ documento.fecha_subida.strftime('%Y-%m-%d %H:%M') }}
                         </span>
                         <a href="{{ url_for('descargar_documento', documento_id=documento.id_documento) }}" class="download-btn">
                             <i class="fas fa-download"></i> Descargar
                         </a>
+
+                        <!-- Botón para mostrar/ocultar comentarios -->
+                        <button class="toggle-comments-btn" data-id="{{ documento.id_documento }}">
+                            Comentarios
+                        </button>
+
+                        <!-- Contenedor de comentarios -->
+                        <div class="comentarios-container" id="comentarios-{{ documento.id_documento }}" style="display: none;">
+                            <div class="comentarios-list" id="comentarios-list-{{ documento.id_documento }}"></div>
+                            <form class="comentario-form" data-id="{{ documento.id_documento }}">
+                                <textarea name="contenido" placeholder="Escribe tu comentario..." required></textarea>
+                                <button type="submit">Enviar</button>
+                            </form>
+                        </div>
                     </li>
                     {% endfor %}
                 </ul>
@@ -188,4 +202,5 @@
 
     </script>
 </body>
+<script src="{{ url_for('static', filename='comentarios.js') }}"></script>
 </html>
