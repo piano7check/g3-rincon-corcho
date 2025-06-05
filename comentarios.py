@@ -77,3 +77,23 @@ def eliminar_comentario(id_comentario, id_usuario):
     finally:
         if conn:
             conn.close()
+
+def editar_comentario(id_comentario, id_usuario, nuevo_contenido):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE comentarios
+            SET contenido = ?
+            WHERE id_comentario = ? AND id_usuario = ?
+        """, (nuevo_contenido, id_comentario, id_usuario))
+
+        conn.commit()
+        return cursor.rowcount > 0
+    except Exception as e:
+        print("Error al editar comentario:", e)
+        return False
+    finally:
+        if conn:
+            conn.close()
+

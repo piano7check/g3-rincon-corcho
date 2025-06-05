@@ -17,8 +17,7 @@ from obtener_usuarios import obtener_todos_los_usuarios
 from eliminar_usuario import eliminar_usuario_por_id
 from carpetas_usuario import obtener_carpetas_usuario
 from conexion_database import get_connection # Asumo que esta función existe en tu modulo y maneja la conexión a la DB
-from comentarios import agregar_comentario, obtener_comentarios, eliminar_comentario
-
+from comentarios import agregar_comentario, obtener_comentarios, eliminar_comentario, editar_comentario
 
 app = Flask(__name__)
 # ¡IMPORTANTE! Cambia esto por una clave secreta más segura y compleja para producción.
@@ -613,7 +612,7 @@ def obtener_semestres_unicos_api():
         if conn:
             conn.close()
     return jsonify(semestres)
-
+    #crear comentarios s
 @app.route('/api/documentos/<int:id_documento>/comentarios', methods=['POST'])
 def crear_comentario(id_documento):
     if 'id' not in session:
@@ -628,12 +627,12 @@ def crear_comentario(id_documento):
         return jsonify({"mensaje": "Comentario agregado correctamente"}), 201
     else:
         return jsonify({"error": "Error al guardar el comentario"}), 500
-
+    #optener los comentarios por docuemtos
 @app.route('/api/documentos/<int:id_documento>/comentarios', methods=['GET'])
 def obtener_comentarios_documento(id_documento):
     comentarios = obtener_comentarios(id_documento)
     return jsonify(comentarios), 200
-
+    #eliminar los comentarios por docuemtos
 @app.route('/api/comentarios/<int:id_comentario>', methods=['DELETE'])
 def borrar_comentario(id_comentario):
     if 'id' not in session:
@@ -644,6 +643,22 @@ def borrar_comentario(id_comentario):
         return jsonify({"mensaje": "Comentario eliminado"}), 200
     else:
         return jsonify({"error": "No se pudo eliminar (no eres el autor o error)"}), 403
+
+@app.route('/api/comentarios/<int:id_comentario>', methods=['PUT'])
+def actualizar_comentario(id_comentario):
+    if 'id' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+
+    nuevo_contenido = request.form.get('contenido', '').strip()
+    if not nuevo_contenido:
+        return jsonify({"error": "Contenido vacío"}), 400
+
+    exito = editar_comentario(id_comentario, session['id'], nuevo_contenido)
+    if exito:
+        return jsonify({"mensaje": "Comentario actualizado"}), 200
+    else:
+        return jsonify({"error": "No se pudo editar (no eres el autor o error)"}), 403
+
 
 # API para obtener materias filtradas por semestre para el select del modal de subida
 @app.route('/obtener_materias_por_semestre_api/<semestre>', methods=['GET'])

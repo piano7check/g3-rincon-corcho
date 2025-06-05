@@ -21,12 +21,21 @@ async function cargarComentarios(documentoId) {
             comentarios.forEach(comentario => {
                 const div = document.createElement('div');
                 div.classList.add('comentario-item');
+
+                let botones = '';
+                if (comentario.es_autor) {
+                    botones = `
+                        <button class="editar-btn" data-id="${comentario.id_comentario}" data-doc="${documentoId}">✏️</button>
+                        <button class="eliminar-btn" data-id="${comentario.id_comentario}" data-doc="${documentoId}">🗑️</button>
+                    `;
+                }
+
                 div.innerHTML = `
                     <div class="comentario-header">
                         <strong>${comentario.autor}</strong> - ${comentario.fecha}
-                        ${comentario.es_autor ? `<button class="eliminar-btn" data-id="${comentario.id_comentario}" data-doc="${documentoId}">🗑️</button>` : ''}
+                        ${botones}
                     </div>
-                    <div class="comentario-contenido">
+                    <div class="comentario-contenido" data-id="${comentario.id_comentario}">
                         ${comentario.contenido}
                     </div>
                     <hr>
@@ -34,7 +43,16 @@ async function cargarComentarios(documentoId) {
                 lista.appendChild(div);
             });
 
-            // Agregar listener para eliminar comentarios a los botones creados dinámicamente
+            // Agregar listeners para editar comentarios
+            lista.querySelectorAll('.editar-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idComentario = btn.getAttribute('data-id');
+                    const docId = btn.getAttribute('data-doc');
+                    iniciarEdicionComentario(idComentario, docId);
+                });
+            });
+
+            // Agregar listeners para eliminar comentarios
             lista.querySelectorAll('.eliminar-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const idComentario = btn.getAttribute('data-id');
@@ -95,7 +113,47 @@ async function eliminarComentario(idComentario, documentoId) {
     }
 }
 
-// Aquí agregamos los event listeners a todos los botones y formularios, después de que cargue el DOM
+function iniciarEdicionComentario(idComentario, documentoId) {
+    const divContenido = document.querySelector(`.comentario-contenido[data-id="${idComentario}"]`);
+    const contenidoActual = divContenido.innerText;
+
+    const textarea = document.createElement('textarea');
+    textarea.value = contenidoActual;
+    textarea.rows = 3;
+
+    const guardarBtn = document.createElement('button');
+    guardarBtn.innerText = '💾 Guardar';
+    guardarBtn.classList.add('guardar-edicion-btn');
+    guardarBtn.onclick = () => guardarEdicionComentario(idComentario, documentoId, textarea.value);
+
+    // Limpiar y reemplazar contenido
+    divContenido.innerHTML = '';
+    divContenido.appendChild(textarea);
+    divContenido.appendChild(guardarBtn);
+}
+
+async function guardarEdicionComentario(idComentario, documentoId, nuevoContenido) {
+    const formData = new FormData();
+    formData.append('contenido', nuevoContenido);
+
+    try {
+        const response = await fetch(`/api/comentarios/${idComentario}`, {
+            method: 'PUT',
+            body: formData
+        });
+
+        if (response.ok) {
+            cargarComentarios(documentoId);
+        } else {
+            const error = await response.json();
+            alert(error.error || 'No se pudo editar el comentario');
+        }
+    } catch (err) {
+        console.error("Error al editar comentario:", err);
+    }
+}
+
+// Agregar eventos al cargar la página
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.toggle-comments-btn').forEach(btn => {
         btn.addEventListener('click', () => {
