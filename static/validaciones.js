@@ -1,113 +1,106 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const form = document.querySelector("form");
-    const nameField = document.querySelector("input[name='nombre']");
-    const emailField = document.querySelector("input[name='correo']");
-    const passwordField = document.querySelector("input[name='password']");
+    const form = document.getElementById("registro-form");
+    const name = document.getElementById("nombre");
+    const correo = document.getElementById("correo");
+    const password = document.getElementById("password");
 
-    function validarNombre(nombre) {
-        const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/; 
-        return regex.test(nombre);
+    const nameError = document.getElementById("nombre-error");
+    const correoError = document.getElementById("correo-error");
+    const passwordError = document.getElementById("password-error");
+
+    function validarNombre(valor) {
+        return /^[a-zA-Z\s]+$/.test(valor);
     }
 
-    function validarPassword(password) {
-        const regex = /^(?=.*[0-9\W]).{8,}$/;
-        return regex.test(password);
+    function validarCorreo(valor) {
+        return valor.endsWith("@uab.edu.bo");
     }
 
-    function validarCorreo(correo) {
-        return correo.endsWith("@uab.edu.bo");
+    function validarPassword(valor) {
+        return /^(?=.*[0-9\W]).{8,}$/.test(valor);
     }
 
-    async function verificarCorreo(correo) {
-        const response = await fetch(`/buscar/${correo}`);
-        return response.ok; // Devuelve true si el correo existe, false si no
+    function limpiarError(input, span) {
+        input.classList.remove("error");
+        input.classList.add("valid"); // Agrega esta línea
+        span.textContent = "";
     }
 
-    function mostrarError(input, mensaje) {
-        // Verificar si ya existe un mensaje de error para evitar duplicados
-        if (!input.parentNode.querySelector(".error-message")) {
-            const errorSpan = document.createElement("span");
-            errorSpan.classList.add("error-message");
-            errorSpan.textContent = mensaje;
-
-            // Insertar el mensaje de error justo después del campo
-            input.parentNode.insertBefore(errorSpan, input.nextSibling);
-        }
-        input.classList.add("error"); // Agregar clase de error al campo
+    function mostrarError(input, span, mensaje) {
+        input.classList.remove("valid"); // Asegúrate de quitar el verde si antes era válido
+        input.classList.add("error");
+    span.textContent = mensaje;
     }
-
-    function limpiarErrores() {
-        document.querySelectorAll(".error-message").forEach(el => el.remove());
-        document.querySelectorAll("input.error").forEach(input => input.classList.remove("error")); // Quitar clase de error
-    }
-
-    // Validación en tiempo real para el campo de nombre
-    nameField.addEventListener("input", function () {
-        limpiarErrores();
-        if (!validarNombre(nameField.value)) {
-            mostrarError(nameField, "El nombre solo puede contener letras y espacios.");
-        }
+    
+    name.addEventListener("input", () => {
+        validarNombre(name.value)
+            ? limpiarError(name, nameError)
+            : mostrarError(name, nameError, "Solo letras y espacios.");
     });
 
-    // Validación en tiempo real para el campo de correo
-    emailField.addEventListener("input", function () {
-        limpiarErrores();
-        if (!validarCorreo(emailField.value)) {
-            mostrarError(emailField, "El correo debe terminar en @uab.edu.bo");
-        }
+    correo.addEventListener("input", () => {
+        validarCorreo(correo.value)
+            ? limpiarError(correo, correoError)
+            : mostrarError(correo, correoError, "Debe terminar en @uab.edu.bo");
     });
 
-    // Validación en tiempo real para el campo de contraseña
-    passwordField.addEventListener("input", function () {
-        limpiarErrores();
-        if (!validarPassword(passwordField.value)) {
-            mostrarError(passwordField, "La contraseña debe tener al menos 8 caracteres e incluir un número o símbolo.");
-        }
+    password.addEventListener("input", () => {
+        validarPassword(password.value)
+            ? limpiarError(password, passwordError)
+            : mostrarError(password, passwordError, "Mínimo 8 caracteres con símbolo o número.");
     });
 
-    // Validación al perder el foco en el campo de correo
-    emailField.addEventListener("blur", async function () {
-        limpiarErrores();
-        if (!validarCorreo(emailField.value)) {
-            mostrarError(emailField, "El correo debe terminar en @uab.edu.bo");
+    form.addEventListener("submit", function (e) {
+        e.preventDefault(); // detenemos siempre para controlar
+
+        let valido = true;
+        const contenedor = form.closest(".form-container");
+        contenedor.classList.remove("form-success");
+
+        if (!validarNombre(name.value)) {
+            mostrarError(name, nameError, "Solo letras y espacios.");
+            valido = false;
         } else {
-            const correoExiste = await verificarCorreo(emailField.value);
-            if (correoExiste) {
-                mostrarError(emailField, "El correo ya está registrado");
+            limpiarError(name, nameError);
+        }
+
+        if (!validarCorreo(correo.value)) {
+            mostrarError(correo, correoError, "Debe terminar en @uab.edu.bo");
+            valido = false;
+        } else {
+            limpiarError(correo, correoError);
+        }
+
+        if (!validarPassword(password.value)) {
+            mostrarError(password, passwordError, "Mínimo 8 caracteres con símbolo o número.");
+            valido = false;
+        } else {
+            limpiarError(password, passwordError);
+        }
+
+        if (valido) {
+            contenedor.classList.add("form-success");
+            setTimeout(() => form.submit(), 300);
+        }
+    });
+
+// Validación al perder el foco en el campo de nombre
+    name.addEventListener("blur", async function () {
+        if (!validarNombre(name.value)) {
+            mostrarError(name, nameError, "Solo letras y espacios.");
+        } else {
+            const nombreExiste = await verificarNombre(name.value);
+            if (nombreExiste) {
+                mostrarError(name, nameError, "El nombre ya está registrado, ingrese otro.");
+            } else {
+                limpiarError(name, nameError);
             }
         }
     });
-
-    // Validación al perder el foco en el campo de contraseña
-    passwordField.addEventListener("blur", function () {
-        limpiarErrores();
-        if (!validarPassword(passwordField.value)) {
-            mostrarError(passwordField, "La contraseña debe tener al menos 8 caracteres e incluir un número o símbolo.");
-        }
-    });
-
-    // Validación al enviar el formulario
-    form.addEventListener("submit", function (event) {
-        limpiarErrores();
-        let isValid = true;
-
-        if (!validarNombre(nameField.value)) {
-            mostrarError(nameField, "El nombre solo puede contener letras y espacios.");
-            isValid = false;
-        }
-
-        if (!validarCorreo(emailField.value)) {
-            mostrarError(emailField, "El correo debe terminar en @uab.edu.bo");
-            isValid = false;
-        }
-
-        if (!validarPassword(passwordField.value)) {
-            mostrarError(passwordField, "La contraseña debe tener al menos 8 caracteres e incluir un número o símbolo.");
-            isValid = false;
-        }
-
-        if (!isValid) {
-            event.preventDefault();
-        }
-    });
 });
+
+// Función para verificar si el nombre ya existe en la base de datos
+async function verificarNombre(nombre) {
+    const response = await fetch(`/buscar_nombre/${encodeURIComponent(nombre)}`);
+    return response.ok; // true si el nombre existe
+}

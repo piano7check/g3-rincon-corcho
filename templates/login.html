@@ -6,46 +6,37 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
 </head>
 <body>
-    <div class="form-container">
-        <h2>Iniciar Sesión</h2>
-        <form action="{{ url_for('login') }}" method="POST">
-            <label for="correo">Correo:</label><br>
-            <input type="email" name="correo" required><br><br>
+    <div class="login-container">
+        <h2>🔐 Iniciar Sesión</h2>
 
-            <label for="password">Contraseña:</label><br>
-            <input type="password" name="password" required><br><br>
+        <form action="{{ url_for('login') }}" method="POST" id="login-form">
+            <label for="correo">Correo institucional:</label>
+            <input type="email" name="correo" id="correo" placeholder="ejemplo@uab.edu.bo" required>
+            <span class="error-message" id="correo-error"></span>
 
-            <!-- NUEVO: Opción para modo administrador -->
-            <label>
-                <input type="checkbox" name="modo_admin" id="modo_admin" onclick="mostrarToken()"> Iniciar como administrador
-            </label><br><br>
+            <label for="password">Contraseña:</label>
+            <input type="password" name="password" id="password" placeholder="Minimo 8 caracteres y un caracter especial.." required>
+            <span class="error-message" id="password-error"></span>
 
-            <!-- NUEVO: Campo de token -->
+            <label class="admin-option">
+                <input type="checkbox" name="modo_admin" id="modo_admin" onclick="mostrarToken()">
+                ¿Solicitar acceso como administrador?
+            </label>
+
             <div id="token_container" style="display: none;">
-                <label for="token">Token de administrador:</label><br>
-                <input type="text" name="token"><br><br>
+                <label for="token">Token de administrador:</label>
+                <input type="text" name="token" placeholder="Ingresa el token">
             </div>
 
-            <input type="submit" value="Iniciar Sesión">
+            {% if error %}
+            <div class="error-message formulario-error">{{ error }}</div>
+            {% endif %}
+
+            <input type="submit" value="Ingresar">
+            <br>
+            <a class="login-link" href="{{ url_for('registro') }}">¿No tienes cuenta? Regístrate aquí</a>
         </form>
-
-        <!-- Mostrar mensaje de error si existe -->
-        {% if error %}
-        <div class="error-message login-error">
-            {{ error }}
-        </div>
-        {% endif %}
     </div>
-
-    <script>
-        function mostrarToken() {
-            const checkbox = document.getElementById('modo_admin');
-            const tokenDiv = document.getElementById('token_container');
-            tokenDiv.style.display = checkbox.checked ? 'block' : 'none';
-        }
-    </script>
-
-    <script src="{{ url_for('static', filename='validaciones.js') }}"></script>  
+<script src="{{ url_for('static', filename='validacion_login.js') }}"></script>
 </body>
 </html>
-

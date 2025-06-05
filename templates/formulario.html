@@ -8,24 +8,25 @@
 <body>
     <div class="form-container">
         <h2>Crear Cuenta</h2>
-        <form action="/insertar" method="POST">
+
+        <form id="registro-form" action="/insertar" method="POST">
             <label for="nombre">Nombre:</label><br>
-            <input type="text" name="nombre" required><br><br>
+            <input type="text" id="nombre" name="nombre" required placeholder="Ingrese solo letras y espacios">
+            <span id="nombre-error" class="error-message"></span>
 
-            <label for="correo">Correo:</label><br>
-            <input type="email" name="correo" required><br><br>
+            <label for="correo">Correo institucional:</label>
+            <input type="email" name="correo" id="correo" placeholder="ejemplo@uab.edu.bo" required>
+            <span class="error-message" id="correo-error"></span>
 
-            <label for="password">Contraseña:</label><br>
-            <input type="password" name="password" required><br><br>
+            <label for="password">Contraseña:</label>
+            <input type="password" name="password" id="password" placeholder="Minimo 8 caracteres y un caracter especial.." required>
+            <span class="error-message" id="password-error"></span>
 
-            <!-- Mostrar mensaje de error si existe -->
             {% if error %}
-            <div class="error-message formulario-error">
-                {{ error }}
-            </div>
+            <div class="error-message formulario-error">{{ error }}</div>
             {% endif %}
 
-            <input type="submit" value="Enviar">
+            <input type="submit" value="Crear Cuenta">
             <br><br>
             <a href="{{ url_for('login') }}">¿Ya tienes cuenta? Inicia sesión</a>
         </form>
@@ -33,3 +34,4 @@
     <script src="{{ url_for('static', filename='validaciones.js') }}"></script>
 </body>
 </html>
+

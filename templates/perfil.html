@@ -2,24 +2,208 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Perfil de Usuario</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estos estilos están aquí para asegurar el funcionamiento. 
+           Idealmente, si ya tienes estas clases en estilos.css, puedes eliminarlos de aquí.
+           Sin embargo, si tus estilos de estilos.css no son suficientes o hay conflictos,
+           estos estilos internos tienen prioridad y pueden servir de "parche". */
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .perfil-container { /* Ya tienes una clase .perfil-container en tu estilos.css */
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+        .perfil-imagen img { /* Ya tienes una clase .perfil-imagen img en tu estilos.css */
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #007bff;
+            margin-bottom: 20px;
+            background-color: #e9ecef; /* Color de fondo si la imagen es transparente */
+        }
+        .perfil-container h2 {
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .perfil-container p {
+            font-size: 1.1em;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .perfil-container strong {
+            color: #000;
+        }
+        .config-options-container {
+            margin-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px; /* Espacio entre botones */
+        }
+        .config-option, .eliminar-btn { /* .config-option ya está en tu estilos.css. Cuidado con .eliminar-btn vs .config-option.eliminar */
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            display: inline-flex; /* Para alinear icono y texto */
+            align-items: center;
+            gap: 8px; /* Espacio entre icono y texto */
+        }
+        .config-option {
+            background-color: #007bff; /* Puede ser sobrescrito por tus estilos.css si .config-option tiene background */
+        }
+        .config-option:hover {
+            background-color: #0056b3;
+            color: white; /* Asegurar que el color del texto no cambie */
+        }
+        .eliminar-btn { /* Cambio de nombre para evitar conflicto directo con .config-option.eliminar */
+            background-color: #dc3545;
+            border: none;
+            cursor: pointer;
+        }
+        .eliminar-btn:hover {
+            background-color: #c82333;
+        }
+        .carpetas-grid { /* Ya tienes una clase .carpetas-grid en tu estilos.css */
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+            padding: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .carpeta-card { /* Ya tienes una clase .carpeta-card en tu estilos.css */
+            background-color: #e9f0f8;
+            border: 1px solid #d1e0ed;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .carpeta-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+        }
+        .carpeta-card h4 {
+            color: #0056b3;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        /* Estilos para los mensajes flash, ya que Bootstrap no los tiene por defecto con estas clases */
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+        .alert-success {
+            color: #0f5132;
+            background-color: #d1e7dd;
+            border-color: #badbcc;
+        }
+        .alert-danger, .alert-error { /* Añadido .alert-error para categoría 'error' */
+            color: #842029;
+            background-color: #f8d7da;
+            border-color: #f5c2c7;
+        }
+        .alert-info {
+            color: #055160;
+            background-color: #cff4fc;
+            border-color: #b6effb;
+        }
+        .alert-warning {
+            color: #664d03;
+            background-color: #fff3cd;
+            border-color: #ffecb5;
+        }
+    </style>
 </head>
 <body>
-    <div class="form-container">
-          <!-- Imagen de usuario -->
-        <img src="{{ url_for('static', filename='imagenes/usuario.png') }}" alt="Imagen de usuario" width="150">
+<div class="perfil-container"> <h2><i class="fas fa-user-circle"></i> Mi Perfil</h2>
 
-        <h2>Mi Perfil</h2>
-        <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
-        <p><strong>Correo:</strong> {{ usuario.correo }}</p>
-
-        <form action="{{ url_for('editar_usuario_route') }}" method="get">
-            <input type="submit" value="Editar Usuario" class="logout-button">
-        </form>
-        <br>
-        <a href="{{ url_for('bienvenida') }}">Volver al inicio</a>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flashes mb-3">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
     </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="perfil-imagen">
+        <img src="{{ url_for('static', filename='imagenes/perfiles/' + usuario.foto) if usuario.foto else url_for('static', filename='imagenes/perfil_default.png') }}" alt="Foto de perfil">
+        <a href="{{ url_for('cambiar_foto') }}" class="btn btn-sm btn-outline-secondary mt-2">
+            <i class="fas fa-camera"></i> Cambiar Foto
+        </a>
+    </div>
+
+    <p><strong><i class="fas fa-user"></i> Nombre:</strong> {{ usuario.nombre }}</p>
+    <p><strong><i class="fas fa-envelope"></i> Correo:</strong> {{ usuario.correo }}</p>
+
+    <div class="config-options-container">
+        <a href="{{ url_for('editar_usuario_route') }}" class="config-option">
+            <i class="fas fa-edit"></i> Editar Perfil
+        </a>
+        <form action="{{ url_for('eliminar_cuenta') }}" method="POST" style="display:inline;" onsubmit="return confirmarEliminacion()">
+            <button type="submit" class="eliminar-btn">
+                <i class="fas fa-trash-alt"></i> Eliminar Cuenta
+            </button>
+        </form>
+        <a href="{{ url_for('logout') }}" class="config-option" style="background-color: #6c757d;">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </a>
+    </div>
+
+    <h3 style="margin-top: 40px;"><i class="fas fa-folder-open"></i> Mis Carpetas</h3>
+    <div class="carpetas-grid">
+        {% if carpetas %}
+            {% for carpeta in carpetas %}
+                <div class="carpeta-card">
+                    <h4><i class="fas fa-folder"></i> {{ carpeta.nombre }}</h4>
+                    </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12"> <p>No tienes ninguna carpeta.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // La función toggleConfiguracion no se está usando con ningún elemento en tu HTML actual,
+    // pero la mantengo si la planeas usar.
+    function toggleConfiguracion() {
+        const panel = document.getElementById('config-panel'); // Asegúrate de que este ID exista si lo usas
+        if (panel) {
+            panel.classList.toggle('show');
+        }
+    }
+
+    function confirmarEliminacion() {
+        return confirm("¿Seguro que deseas eliminar tu cuenta? Esta acción no se puede deshacer.");
+    }
+</script>
 </body>
 </html>
-<img src="{{ url_for('static', filename='imagenes/usuario.png') }}" alt="Imagen de usuario" width="150">

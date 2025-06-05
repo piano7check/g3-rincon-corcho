@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cambiar Foto de Perfil</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+    <div class="form-container">
+        <h2>🖼️ Cambiar Foto de Perfil</h2>
+
+        <form action="{{ url_for('cambiar_foto') }}" method="POST" enctype="multipart/form-data">
+            <label for="foto">Selecciona una nueva imagen:</label>
+            <input type="file" name="foto" id="foto" accept="image/*" required>
+
+            <input type="submit" value="Guardar Imagen">
+        </form>
+
+        <a class="login-link" href="{{ url_for('perfil') }}">← Volver a mi perfil</a>
+    </div>
+</body>
+</html>

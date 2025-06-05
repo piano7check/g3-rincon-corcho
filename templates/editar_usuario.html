@@ -2,24 +2,49 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Editar Usuario</title>
+    <title>Editar Perfil</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
-
 </head>
 <body>
     <div class="form-container">
-        <h2> Editar Usuario</h2>
-        <img src="{{ url_for('static', filename='imagenes/usuario.png') }}" alt="Imagen de usuario" width="150">
-        <form method="POST">
-            <label for="nombre"> Nombre: </label><br>
-            <input type="text" name="nombre" required><br><br>
+        <h2>Editar Perfil</h2>
 
-            <label for="correo"> Correo:  </label><br>
-            <input type="email" name="correo" required><br><br>
+        <form action="{{ url_for('editar_usuario_route') }}" method="POST" enctype="multipart/form-data" id="editar-form">
+            <!-- Imagen actual -->
+            <div class="perfil-imagen">
+                <img src="{{ url_for('static', filename='imagenes/perfiles/' + usuario.foto if usuario.foto else 'imagenes/perfil_default.png') }}" alt="Foto actual">
+            </div>
 
-            <input type="submit" value="Actualizar">
+            <!-- Subir nueva imagen -->
+            <label for="foto">Nueva Foto:</label>
+            <input type="file" name="foto" id="foto" accept="image/*">
+            <br><br>
 
+            <!-- Nombre -->
+            <label for="nombre">Nombre:</label>
+            <input type="text" name="nombre" id="nombre" value="{{ usuario.nombre }}" required>
+            <span class="error-message" id="nombre-error"></span>
+
+            <!-- Correo -->
+            <label for="correo">Correo institucional:</label>
+            <input type="email" name="correo" id="correo" value="{{ usuario.correo }}" required>
+            <span class="error-message" id="correo-error"></span>
+
+            <!-- Contraseña -->
+            <label for="password">Nueva Contraseña:</label>
+            <input type="password" name="password" id="password" placeholder="••••••••">
+            <span class="error-message" id="password-error"></span>
+
+            {% if error %}
+                <div class="formulario-error">{{ error }}</div>
+            {% endif %}
+
+            <input type="submit" value="Guardar Cambios">
         </form>
+
+        <a class="login-link" href="{{ url_for('perfil') }}">← Volver a mi perfil</a>
     </div>
+
+    <script src="{{ url_for('static', filename='validacion_editar.js') }}"></script>
 </body>
 </html>
