@@ -193,7 +193,7 @@ def bienvenida():
             conn.close()
 
     # Pasa los documentos y las materias a la plantilla
-    return render_template('rincon_del_corcho.html', documentos=documentos, materias=materias)
+    return render_template('rincon_del_corcho.html', materias=materias, documentos=documentos)
 
 # NUEVA RUTA: Para ver los documentos de una materia específica
 @app.route('/materia/<int:id_materia>')

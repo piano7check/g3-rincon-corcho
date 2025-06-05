@@ -11,7 +11,7 @@
         <div class="navbar-left">
             <span class="navbar-title">📚 Rincón del Corcho</span>
             {% if session['rol'] == 'admin' %}
-                <a href="{{ url_for('crear_materia') }}" class="admin-button-crear">
+                <a href="#" class="admin-button-crear" onclick="abrirModalCrearMateria(); return false;">
                     <i class="fas fa-folder-plus"></i> Crear Materia
                 </a>
             {% endif %}
@@ -58,28 +58,69 @@
             {% endif %}
         </div>
 
-        {# Botón para abrir el modal de subir documento #}
+        <!-- Botón para abrir el modal de subir documento -->
         <div class="upload-section">
             <button class="upload-button" id="openUploadModal">📤 Subir Documento</button>
         </div>
 
-        {# Sección para listar documentos subidos #}
-        <h2 class="section-title" style="margin-top: 40px;">Documentos Recientes</h2>
+        <!-- Modal para Subir Documento -->
+        <div id="uploadModal" class="modal">
+            <div class="modal-content">
+                <span class="close-button" id="closeUploadModal">&times;</span>
+                <h2>Subir Nuevo Documento</h2>
+                <form action="{{ url_for('subir_documento') }}" method="POST" enctype="multipart/form-data">
+                    <label for="nombre_documento_input">Nombre del Documento:</label>
+                    <input type="text" id="nombre_documento_input" name="nombre_documento_input" placeholder="Ej. Apuntes de Cálculo I" required>
+
+                    <label for="documento_file">Selecciona el archivo PDF:</label>
+                    <input type="file" id="documento_file" name="documento_file" accept=".pdf" required>
+
+                    <label for="materia_semestre">Semestre al que pertenece:</label>
+                    <select id="materia_semestre" name="materia_semestre" required>
+                        <option value="">-- Selecciona un Semestre --</option>
+                        {# Las opciones se cargarán con JavaScript #}
+                    </select>
+
+                    <label for="materia_nombre">Materia a la que pertenece:</label>
+                    <select id="materia_nombre" name="materia_nombre" required disabled>
+                        <option value="">-- Selecciona una Materia --</option>
+                        {# Las opciones se cargarán con JavaScript después de seleccionar un semestre #}
+                    </select>
+                    
+                    <button type="submit" class="submit-upload-btn">Subir Documento</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal para Crear Materia -->
+        <div id="modalCrearMateria" class="modal">
+            <div class="modal-content">
+                <span class="close-button" id="closeCrearMateria">&times;</span>
+                <h2>Crear Materia</h2>
+                <form id="formCrearMateria" method="POST" action="{{ url_for('crear_materia') }}">
+                  <label for="nombre">Nombre de la materia:</label>
+                  <input type="text" name="nombre" required>
+                  <label for="semestre">Semestre:</label>
+                  <input type="text" name="semestre" required>
+                  <input type="submit" value="Crear" class="submit-upload-btn">
+                </form>
+            </div>
+        </div>
+
+        <h2 class="section-title">Documentos Recientes</h2>
         <div class="documents-list">
             {% if documentos %}
                 <ul>
-                    {% for documento in documentos %}
-                    <li class="document-item">
-                        <span class="document-info">
-                            <strong>{{ documento.nombre_documento }}</strong> <br>
-                            Subido por: {{ documento.nombre_usuario }} <br>
-                            Materia: {{ documento.nombre_materia }} ({{ documento.semestre }}) <br> {# Muestra el semestre #}
-                            Fecha: {{ documento.fecha_subida.strftime('%Y-%m-%d %H:%M') }}
-                        </span>
-                        <a href="{{ url_for('descargar_documento', documento_id=documento.id_documento) }}" class="download-btn">
-                            <i class="fas fa-download"></i> Descargar
-                        </a>
-                    </li>
+                    {% for doc in documentos %}
+                        <li class="document-item">
+                            <div class="document-info">
+                                <strong>{{ doc.nombre_documento }}</strong><br>
+                                Subido por: {{ doc.nombre_usuario }}<br>
+                                Materia: {{ doc.nombre_materia }} ({{ doc.semestre }})<br>
+                                Fecha: {{ doc.fecha_subida.strftime('%Y-%m-%d %H:%M') if doc.fecha_subida else '' }}
+                            </div>
+                            <a href="{{ url_for('descargar_documento', documento_id=doc.id_documento) }}" class="download-btn">Descargar</a>
+                        </li>
                     {% endfor %}
                 </ul>
             {% else %}
@@ -87,35 +128,6 @@
             {% endif %}
         </div>
     </main>
-
-    {# Modal para Subir Documento #}
-    <div id="uploadModal" class="modal">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2>Subir Nuevo Documento</h2>
-            <form action="{{ url_for('subir_documento') }}" method="POST" enctype="multipart/form-data">
-                <label for="nombre_documento_input">Nombre del Documento:</label>
-                <input type="text" id="nombre_documento_input" name="nombre_documento_input" placeholder="Ej. Apuntes de Cálculo I" required>
-
-                <label for="documento_file">Selecciona el archivo PDF:</label>
-                <input type="file" id="documento_file" name="documento_file" accept=".pdf" required>
-
-                <label for="materia_semestre">Semestre al que pertenece:</label>
-                <select id="materia_semestre" name="materia_semestre" required>
-                    <option value="">-- Selecciona un Semestre --</option>
-                    {# Las opciones se cargarán con JavaScript #}
-                </select>
-
-                <label for="materia_nombre">Materia a la que pertenece:</label>
-                <select id="materia_nombre" name="materia_nombre" required disabled>
-                    <option value="">-- Selecciona una Materia --</option>
-                    {# Las opciones se cargarán con JavaScript después de seleccionar un semestre #}
-                </select>
-                
-                <button type="submit" class="submit-upload-btn">Subir Documento</button>
-            </form>
-        </div>
-    </div>
 
     <script>
         // Lógica para el modal de subir documento
@@ -191,6 +203,20 @@
         // Asegúrate de que los selects estén en el estado correcto al cargar la página
         materiaSelect.disabled = true; // Deshabilitar materia por defecto si no hay semestre seleccionado
 
+        function abrirModalCrearMateria() {
+            document.getElementById('modalCrearMateria').style.display = 'block';
+        }
+        function cerrarModalCrearMateria() {
+            document.getElementById('modalCrearMateria').style.display = 'none';
+        }
+        // Cierra el modal si se hace clic fuera del contenido
+        window.onclick = function(event) {
+            var modal = document.getElementById('modalCrearMateria');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
     </script>
+    <script src="{{ url_for('static', filename='modales.js') }}"></script>
 </body>
 </html>
