@@ -531,28 +531,162 @@ input.valid {
     text-decoration: none;
     cursor: pointer;
 }
-
-/* ---------- ESTILOS ADICIONALES PARA ADMINISTRACIÓN ---------- */
-/* Botón llamativo para crear materia */
-.admin-button-crear {
-    margin-left: 30px;
-    padding: 10px 20px;
-    background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%);
-    color: #fff !important;
-    font-weight: bold;
-    border: none;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.15);
-    text-decoration: none;
-    transition: background 0.2s, transform 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem;
+/* ───────── CONTENEDOR GENERAL DE COMENTARIOS ───────── */
+.comentarios-container {
+    background-color: #f9f9f9;
+    padding: 16px 40px;
+    border-radius: 12px;
+    margin-top: 16px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
-.admin-button-crear:hover {
-    background: linear-gradient(90deg, #ff5722 0%, #ff9800 100%);
-    color: #fff;
-    transform: scale(1.05);
-    text-decoration: none;
+
+/* ───────── LISTA DE COMENTARIOS ───────── */
+.comentarios-list {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+/* ───────── CADA COMENTARIO ───────── */
+.comentario-item {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+    position: relative;
+}
+
+/* Contenido del comentario: autor y fecha */
+.comentario-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    padding-right: 8px;
+}
+
+/* Autor */
+.comentario-item strong {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+/* Fecha */
+.comentario-fecha {
+    font-size: 0.85rem;
+    color: #888;
+}
+
+/* Contenido del comentario */
+.comentario-contenido {
+    padding-left: 4px;
+    color: #333;
+}
+
+/* ───────── BOTÓN DE ELIMINAR ───────── */
+.eliminar-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #e74c3c;
+    transition: transform 0.2s ease;
+}
+
+.eliminar-btn:hover {
+    transform: scale(1.2);
+}
+
+/* ───────── FORMULARIO DE NUEVO COMENTARIO ───────── */
+.comentario-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+/* Área de texto */
+.comentario-form textarea {
+    resize: vertical;
+    min-height: 80px;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #b4b4b4;
+    font-size: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Botón de enviar */
+.comentario-form button[type="submit"] {
+    align-self: flex-end;
+    background-color: #2d89ef;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.comentario-form button[type="submit"]:hover {
+    background-color: #1e5fbf;
+}
+
+.editar-btn {
+    margin-left: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #2980b9;
+}
+
+.editar-form {
+    margin-top: 8px;
+}
+
+.editar-textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    resize: vertical;
+    box-sizing: border-box;
+}
+
+.editar-form button {
+    margin-top: 6px;
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.editar-form button:hover {
+    background-color: #1e8449;
+}
+
+.toggle-comments-btn {
+    font-size: 16px;       /* Tamaño del texto */
+    padding: 10px 20px;    /* Espaciado interno más amplio */
+    border-radius: 8px;    /* Bordes redondeados */
+    background-color: #adb0ad;  /* Color de fondo (verde agradable) */
+    color: white;          /* Color del texto */
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-comments-btn:hover {
+    background-color: #45a049; /* Efecto al pasar el mouse */
 }
