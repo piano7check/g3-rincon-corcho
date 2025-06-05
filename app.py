@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for, jsonify, abort, session, flash, send_file
+import bcrypt
 from werkzeug.utils import secure_filename
 import os
 import uuid
@@ -61,24 +62,31 @@ def login():
     if request.method == 'POST':
         correo = request.form['correo']
         password = request.form['password']
-
-        # Validaciones básicas de los datos de entrada
-        if not es_email_valido(correo):
-            flash("Correo inválido.", "error")
-            return render_template('login.html')
-        if not password:
-            flash("La contraseña es requerida.", "error")
-            return render_template('login.html')
+        modo_admin = request.form.get('modo_admin')
+        token = request.form.get('token', '').strip()
 
         # Verifica las credenciales del usuario usando tu función `verificar_usuario`
         usuario = verificar_usuario(correo, password)
         if usuario:
-            # Si el login es exitoso, guarda el ID del usuario en la sesión y redirige a 'bienvenida'
+            # Si el usuario solicita modo admin y el token es correcto
+            if modo_admin and token == 'secreto123':
+                try:
+                    conn = get_connection()
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE usuarios SET rol = 'admin' WHERE correo = ?", correo)
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                    usuario['rol'] = 'admin'  # Actualiza el dict local también
+                except Exception as e:
+                    print("Error actualizando rol a admin:", e)
+                    flash("No se pudo actualizar el rol a administrador.", "error")
+                    return render_template('login.html')
             session['id'] = usuario['id']
-            flash("Inicio de sesión exitoso.", "success") # Este mensaje se mostrará en 'bienvenida'
+            session['rol'] = usuario['rol']
+            flash("Inicio de sesión exitoso.", "success")
             return redirect(url_for('bienvenida'))
         else:
-            # Si las credenciales son incorrectas, muestra un mensaje de error
             flash("Correo o contraseña incorrectos", "error")
             return render_template('login.html')
     
@@ -248,15 +256,10 @@ def ver_materia(id_materia):
 
 @app.route('/admin')
 def admin():
-    """
-    Ruta para la página de administración.
-    Aquí podrías añadir una verificación de rol para asegurar que solo los administradores puedan acceder.
-    """
-    if 'id' not in session:
-        flash("Acceso denegado. Por favor, inicie sesión.", "warning")
-        return redirect(url_for('login'))
-    # **PENDIENTE**: Aquí deberías añadir la lógica para verificar si el usuario logueado es administrador.
-    # Por ejemplo, obteniendo el usuario por id y comprobando un campo 'rol' en la base de datos.
+    if 'rol' not in session or session['rol'] != 'admin':
+        flash("Acceso denegado.", "error")
+        return redirect(url_for('bienvenida'))
+    # Puedes pasar aquí datos de administración si lo deseas
     return render_template('admin.html')
 
 @app.route('/logout')
@@ -265,7 +268,7 @@ def logout():
     Cierra la sesión del usuario.
     """
     session.clear()  # Limpia todos los datos de la sesión
-    flash("Has cerrado sesión correctamente.", "info") # Este mensaje se mostrará en 'login'
+    flash("Has cerrado sesión correctamente.", "info") 
     return redirect(url_for('login'))  # Redirige a la página de login
 
 @app.route('/perfil')
@@ -279,7 +282,7 @@ def perfil():
         return redirect(url_for('login'))
     
     usuario = buscar_usuario_por_id(id_usuario)
-    carpetas = obtener_carpetas_usuario(id_usuario) # Asumo que esta función está definida
+    carpetas = obtener_carpetas_usuario(id_usuario)
     if not usuario:
         flash("Usuario no encontrado.", "error")
         return redirect(url_for('logout')) # Si el usuario no existe, cierra la sesión
@@ -331,7 +334,7 @@ def editar_usuario_route():
         imagen_file = request.files.get('foto_perfil') # Nombre del input type="file" en tu formulario HTML
         
         if imagen_file and imagen_file.filename != "":
-            filename = secure_filename(imagen.filename)
+            filename = secure_filename(imagen_file.filename)
             ext = os.path.splitext(filename)[1] # Obtiene la extensión del archivo
             nuevo_nombre_uuid = f"{uuid.uuid4().hex}{ext}" # Genera un nombre único
             ruta_guardado = os.path.join(app.static_folder, "imagenes", "perfiles", nuevo_nombre_uuid)
@@ -639,6 +642,42 @@ def buscar_por_nombre_api(nombre):
         return jsonify(usuario)
     else:
         abort(404, description="Usuario no encontrado")
+
+# Funcion para verificar usuario (login) desde JS si es administrador o no
+def verificar_usuario(correo, password):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id_usuario, nombre, correo, password, rol FROM usuarios WHERE correo = ?", (correo,))
+        row = cursor.fetchone()
+        cursor.close()
+        conn.close()
+
+        if row and bcrypt.checkpw(password.encode('utf-8'), row[3].encode('utf-8')):
+            return {"id": row[0], "nombre": row[1], "correo": row[2], "rol": row[4]}
+        else:
+            return None
+    except Exception as e:
+        print("Error al verificar usuario:", e)
+        return None
+
+# Ruta para crear una nueva materia (solo accesible por administradores)
+@app.route('/admin/crear_materia', methods=['GET', 'POST'])
+def crear_materia():
+    if 'rol' not in session or session['rol'] != 'admin':
+        flash("Acceso denegado.", "error")
+        return redirect(url_for('admin'))
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        semestre = request.form['semestre']
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO materias (nombre_materia, semestre) VALUES (?, ?)", (nombre, semestre))
+        conn.commit()
+        conn.close()
+        flash("Materia creada correctamente.", "success")
+        return redirect(url_for('admin'))
+    return render_template('crear_materia.html')
 
 if __name__ == '__main__':
     # Ejecuta la aplicación en modo depuración (debug=True)

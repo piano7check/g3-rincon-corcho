@@ -531,3 +531,28 @@ input.valid {
     text-decoration: none;
     cursor: pointer;
 }
+
+/* ---------- ESTILOS ADICIONALES PARA ADMINISTRACIÓN ---------- */
+/* Botón llamativo para crear materia */
+.admin-button-crear {
+    margin-left: 30px;
+    padding: 10px 20px;
+    background: linear-gradient(90deg, #ff9800 0%, #ff5722 100%);
+    color: #fff !important;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.15);
+    text-decoration: none;
+    transition: background 0.2s, transform 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+}
+.admin-button-crear:hover {
+    background: linear-gradient(90deg, #ff5722 0%, #ff9800 100%);
+    color: #fff;
+    transform: scale(1.05);
+    text-decoration: none;
+}

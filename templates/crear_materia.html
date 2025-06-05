@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Materia</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+    <div class="form-container">
+        <h2>Crear Materia</h2>
+        <form method="POST">
+            <label for="nombre">Nombre de la materia:</label>
+            <input type="text" name="nombre" required>
+            <label for="semestre">Semestre:</label>
+            <input type="text" name="semestre" required>
+            <input type="submit" value="Crear">
+        </form>
+        <a href="{{ url_for('bienvenida') }}">Volver</a>
+    </div>
+</body>
+</html>

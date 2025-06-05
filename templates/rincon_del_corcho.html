@@ -10,6 +10,11 @@
     <header class="navbar">
         <div class="navbar-left">
             <span class="navbar-title">📚 Rincón del Corcho</span>
+            {% if session['rol'] == 'admin' %}
+                <a href="{{ url_for('crear_materia') }}" class="admin-button-crear">
+                    <i class="fas fa-folder-plus"></i> Crear Materia
+                </a>
+            {% endif %}
         </div>
         <div class="navbar-right">
             <form action="{{ url_for('perfil') }}" method="get">
