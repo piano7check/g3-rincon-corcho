@@ -712,20 +712,40 @@ def verificar_usuario(correo, password):
 # Ruta para crear una nueva materia (solo accesible por administradores)
 @app.route('/admin/crear_materia', methods=['GET', 'POST'])
 def crear_materia():
+    error_nombre = None
     if 'rol' not in session or session['rol'] != 'admin':
         flash("Acceso denegado.", "error")
         return redirect(url_for('admin'))
     if request.method == 'POST':
-        nombre = request.form['nombre']
-        semestre = request.form['semestre']
+        nombre = request.form['nombre'].strip()
+        semestre = request.form['semestre'].strip()
+        next_url = request.form.get('next') or url_for('admin')
         conn = get_connection()
         cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM materias WHERE nombre_materia = ? AND semestre = ?", (nombre, semestre))
+        existe = cursor.fetchone()[0]
+        if existe:
+            error_nombre = "Ya existe una materia con ese nombre y semestre."
+            conn.close()
+            # Renderiza la plantilla con el error debajo del campo nombre
+            return render_template('crear_materia.html', error_nombre=error_nombre, nombre=nombre, semestre=semestre)
         cursor.execute("INSERT INTO materias (nombre_materia, semestre) VALUES (?, ?)", (nombre, semestre))
         conn.commit()
         conn.close()
         flash("Materia creada correctamente.", "success")
-        return redirect(url_for('admin'))
+        return redirect(next_url)
     return render_template('crear_materia.html')
+
+@app.route('/api/validar_materia', methods=['POST'])
+def api_validar_materia():
+    nombre = request.form.get('nombre', '').strip()
+    semestre = request.form.get('semestre', '').strip()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM materias WHERE nombre_materia = ? AND semestre = ?", (nombre, semestre))
+    existe = cursor.fetchone()[0]
+    conn.close()
+    return {'existe': bool(existe)}
 
 if __name__ == '__main__':
     # Ejecuta la aplicación en modo depuración (debug=True)

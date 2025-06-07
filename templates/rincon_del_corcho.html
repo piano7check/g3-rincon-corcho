@@ -11,7 +11,7 @@
         <div class="navbar-left">
             <span class="navbar-title">📚 Rincón del Corcho</span>
             {% if session['rol'] == 'admin' %}
-                <a href="#" class="admin-button-crear" onclick="abrirModalCrearMateria(); return false;">
+                <a href="#" class="crear-materia-navbar-btn" onclick="abrirModalCrearMateria(); return false;">
                     <i class="fas fa-folder-plus"></i> Crear Materia
                 </a>
             {% endif %}
@@ -97,13 +97,16 @@
             <div class="modal-content">
                 <span class="close-button" id="closeCrearMateria">&times;</span>
                 <h2>Crear Materia</h2>
-                <form id="formCrearMateria" method="POST" action="{{ url_for('crear_materia') }}">
-                  <label for="nombre">Nombre de la materia:</label>
-                  <input type="text" name="nombre" required>
-                  <label for="semestre">Semestre:</label>
-                  <input type="text" name="semestre" required>
-                  <input type="submit" value="Crear" class="submit-upload-btn">
-                </form>
+                <!-- Solo el fragmento del formulario del modal Crear Materia -->
+<form id="formCrearMateria" method="POST" action="{{ url_for('crear_materia') }}">
+  <input type="hidden" name="next" value="{{ request.path }}">
+  <label for="nombre">Nombre de la materia:</label>
+  <input type="text" name="nombre" id="nombre-materia" required>
+  <span class="error-message" id="error-nombre-materia"></span>
+  <label for="semestre">Semestre:</label>
+  <input type="text" name="semestre" id="semestre-materia" required>
+  <button type="submit" class="crear-materia-btn">Crear</button>
+</form>
             </div>
         </div>
 
@@ -233,6 +236,45 @@
                 modal.style.display = "none";
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const nombreInput = document.getElementById('nombre-materia');
+            const semestreInput = document.getElementById('semestre-materia');
+            const errorSpan = document.getElementById('error-nombre-materia');
+            const form = document.getElementById('formCrearMateria');
+
+            async function validarMateria() {
+                const nombre = nombreInput.value.trim();
+                const semestre = semestreInput.value.trim();
+                if (!nombre || !semestre) {
+                    errorSpan.textContent = '';
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('nombre', nombre);
+                formData.append('semestre', semestre);
+
+                const res = await fetch('/api/validar_materia', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.existe) {
+                    errorSpan.textContent = 'Ya existe una materia con ese nombre y semestre.';
+                } else {
+                    errorSpan.textContent = '';
+                }
+            }
+
+            nombreInput.addEventListener('blur', validarMateria);
+            semestreInput.addEventListener('blur', validarMateria);
+
+            form.addEventListener('submit', function(e) {
+                if (errorSpan.textContent) {
+                    e.preventDefault();
+                }
+            });
+        });
     </script>
     <script src="{{ url_for('static', filename='modales.js') }}"></script>
 </body>

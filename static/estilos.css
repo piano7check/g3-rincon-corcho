@@ -690,3 +690,51 @@ input.valid {
 .toggle-comments-btn:hover {
     background-color: #45a049; /* Efecto al pasar el mouse */
 }
+
+.crear-materia-btn {
+    background-color: #3e4a61; /* Igual que el botón Ver más */
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 18px;
+    transition: background 0.2s, transform 0.1s;
+    box-shadow: 0 2px 8px rgba(62, 74, 97, 0.10);
+}
+
+.crear-materia-btn:hover {
+    background-color: #2d384d;
+    transform: scale(1.04);
+}
+
+/* ---------- NUEVO BOTÓN EN LA NAVBAR ---------- */
+.crear-materia-navbar-btn {
+    background-color: #ff9800;
+    color: #fff !important;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 17px;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.10);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    margin-right: 18px;
+}
+
+.crear-materia-navbar-btn:hover {
+    background-color: #fb8c00;
+    color: #fff;
+    transform: scale(1.04);
+    text-decoration: none;
+}
