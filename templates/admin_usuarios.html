@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administración de Usuarios</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+    <style>
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #ffffff;
+            min-width: 150px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            z-index: 1;
+            border-radius: 6px;
+        }
+
+        .dropdown-content form {
+            margin: 0;
+        }
+
+        .dropdown-content button {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .estado-pendiente {
+            background-color: #ffcc00;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .estado-aprobado {
+            background-color: #33cc33;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+        }
+
+        .estado-rechazado {
+            background-color: #ff3333;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+        }
+
+        .estado-ignorado {
+            background-color: #999999;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+        }
+        .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #ffffff;
+        min-width: 180px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        z-index: 1000; /* MUCHO más alto para evitar que se oculte */
+        border-radius: 6px;
+        padding: 8px 0; /* Mejora visibilidad */
+        top: 100%; /* Lo posiciona justo debajo del botón */
+        left: 0;
+        }
+        .dropdown-content.arriba {
+        top: auto !important;
+        bottom: 100%; /* se despliega hacia arriba */
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h2 class="section-title">👥 Administración de Usuarios</h2>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <!-- Botón a la izquierda -->
+        <a href="{{ url_for('bienvenida') }}" class="config-option" style="font-weight: bold;">← Volver</a>
+        </div>
+
+        <input type="text" id="buscarInput" placeholder="Buscar por nombre o correo..." onkeyup="filtrarUsuarios()">
+
+        <table class="tabla-usuarios">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Contenidos</th>
+                    <th>Solicitud Admin</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaUsuarios">
+                {% for u in usuarios %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.nombre }}</td>
+                    <td>{{ u.correo }}</td>
+                    <td>{{ u.rol }}</td>
+                    <td>{{ u.cantidad_documentos }}</td>
+                    <td>
+                        {% set solicitud = solicitudes | selectattr("id_usuario", "equalto", u.id) | list | first %}
+                        {% if solicitud %}
+                            {% if solicitud.estado == 'pendiente' %}
+                                <div class="dropdown">
+                                    <button class="estado-pendiente" onclick="toggleDropdown({{ solicitud.id_solicitud }})">
+                                        Pendiente ⬇
+                                    </button>
+                                    <div id="dropdown-{{ solicitud.id_solicitud}}" class="dropdown-content" style="display: none;">
+                                        <form method="POST" action="{{ url_for('procesar_solicitud_admin', id_solicitud=solicitud.id_solicitud, decision='aceptado') }}">
+                                            <button type="submit">✅ Aceptar</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('procesar_solicitud_admin', id_solicitud=solicitud.id_solicitud, decision='rechazado') }}">
+                                            <button type="submit">❌ Rechazar</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('procesar_solicitud_admin', id_solicitud=solicitud.id_solicitud, decision='ignorado') }}">
+                                            <button type="submit">⚠️ Ignorar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% elif solicitud.estado == 'aceptado' %}
+                                <span class="estado-aprobado">Aceptado</span>
+                            {% elif solicitud.estado == 'rechazado' %}
+                                <span class="estado-rechazado">Rechazado</span>
+                            {% elif solicitud.estado == 'ignorado' %}
+                                <span class="estado-ignorado">Ignorado</span>
+                            {% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('ver_perfil_usuario', id=u.id) }}" class="config-option">Ver</a>
+                        <form method="POST" action="{{ url_for('eliminar_usuario', id=u.id) }}" style="display:inline;" onsubmit="return confirm('¿Eliminar usuario?');">
+                            <button type="submit" class="config-option eliminar">🗑 Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    <script>
+        function filtrarUsuarios() {
+            const filtro = document.getElementById("buscarInput").value.toLowerCase();
+            const filas = document.querySelectorAll("#tablaUsuarios tr");
+
+            filas.forEach(fila => {
+                const texto = fila.innerText.toLowerCase();
+                fila.style.display = texto.includes(filtro) ? "" : "none";
+            });
+        }
+        function toggleDropdown(id) {
+            const dropdown = document.getElementById("dropdown-" + id);
+            const isVisible = dropdown.style.display === "block";
+
+            // Ocultar todos los demás primero
+            document.querySelectorAll(".dropdown-content").forEach(d => {
+                d.style.display = "none";
+                d.classList.remove("arriba");
+            });
+
+            if (!isVisible) {
+                // Mostrar el actual
+                dropdown.style.display = "block";
+
+                // Verifica si hay espacio suficiente hacia abajo
+                const rect = dropdown.getBoundingClientRect();
+                const espacioDisponibleAbajo = window.innerHeight - rect.bottom;
+
+                if (espacioDisponibleAbajo < 100) {
+                    dropdown.classList.add("arriba");
+                }
+            }
+            // Si estaba visible, lo deja oculto (gracias al ocultamiento previo)
+        }
+
+
+// Opcional: Cerrar si haces clic fuera
+document.addEventListener("click", function(event) {
+    if (!event.target.matches(".estado-pendiente")) {
+        document.querySelectorAll(".dropdown-content").forEach(d => d.style.display = "none");
+    }
+});
+    </script>
+</body>
+</html>

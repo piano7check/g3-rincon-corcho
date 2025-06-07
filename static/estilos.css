@@ -690,3 +690,54 @@ input.valid {
 .toggle-comments-btn:hover {
     background-color: #45a049; /* Efecto al pasar el mouse */
 }
+
+.tabla-usuarios {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: white;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.tabla-usuarios th,
+.tabla-usuarios td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabla-usuarios th {
+    background-color: #3e4a61;
+    color: white;
+}
+
+.estado-pendiente {
+    background-color: #ffcc00;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    position: absolute;
+    background-color: white;
+    min-width: 150px;
+    border-radius: 6px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 10;
+    margin-top: 5px;
+}
+
+.dropdown-content button {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+}
+
