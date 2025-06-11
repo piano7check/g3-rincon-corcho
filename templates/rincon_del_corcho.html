@@ -122,7 +122,11 @@
                         <a href="{{ url_for('descargar_documento', documento_id=documento.id_documento) }}" class="download-btn">
                             <i class="fas fa-download"></i> Descargar
                         </a>
-
+                        {% if documento.id_usuario == session['id'] %}
+                            <button class="delete-btn" onclick="eliminarDocumento('{{ documento.id_documento }}')">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        {% endif %}
                         <!-- Botón para mostrar/ocultar comentarios -->
                         <button class="toggle-comments-btn" data-id="{{ documento.id_documento }}">
                             Comentarios
@@ -237,4 +241,6 @@
     <script src="{{ url_for('static', filename='modales.js') }}"></script>
 </body>
 <script src="{{ url_for('static', filename='comentarios.js') }}"></script>
+<script src="{{ url_for('static', filename='eliminar_documento.js') }}"></script>
+
 </html>

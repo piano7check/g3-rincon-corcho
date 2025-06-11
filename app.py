@@ -17,6 +17,7 @@ from eliminar_usuario import eliminar_usuario_por_id
 from carpetas_usuario import obtener_carpetas_usuario
 from conexion_database import get_connection # Asumo que esta función existe en tu modulo y maneja la conexión a la DB
 from comentarios import agregar_comentario, obtener_comentarios, eliminar_comentario, editar_comentario
+from eliminar_documento import eliminar_documento
 
 app = Flask(__name__)
 # Puedes generar una con: os.urandom(24).hex()
@@ -165,8 +166,9 @@ def bienvenida():
             # Consulta para obtener los documentos con información del usuario y materia
             cursor.execute("""
                 SELECT d.id_documento, d.nombre_documento, d.fecha_subida,
-                    u.nombre AS nombre_usuario, m.nombre_materia, m.semestre
-                FROM Documentos d
+                u.nombre AS nombre_usuario, m.nombre_materia, m.semestre,
+                d.id_usuario  -- <- agregado al final
+                FROM documentos d
                 INNER JOIN usuarios u ON d.id_usuario = u.id_usuario
                 INNER JOIN materias m ON d.id_materia = m.id_materia
                 ORDER BY d.fecha_subida DESC;
@@ -183,6 +185,7 @@ def bienvenida():
                     'nombre_usuario': doc[3],
                     'nombre_materia': doc[4],
                     'semestre': doc[5],
+                    'id_usuario': doc[6]
 
                 })
 
@@ -708,6 +711,17 @@ def verificar_usuario(correo, password):
     except Exception as e:
         print("Error al verificar usuario:", e)
         return None
+
+@app.route('/api/documentos/<int:id_documento>', methods=['DELETE'])
+def api_eliminar_documento(id_documento):
+    if 'id' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+
+    id_usuario_actual = session['id']
+    resultado, status_code = eliminar_documento(id_documento, id_usuario_actual)
+    return jsonify(resultado), status_code
+
+
 
 # Ruta para crear una nueva materia (solo accesible por administradores)
 @app.route('/admin/crear_materia', methods=['GET', 'POST'])
