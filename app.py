@@ -17,6 +17,7 @@ from eliminar_usuario import eliminar_usuario_por_id
 from carpetas_usuario import obtener_carpetas_usuario
 from conexion_database import get_connection # Asumo que esta función existe en tu modulo y maneja la conexión a la DB
 from comentarios import agregar_comentario, obtener_comentarios, eliminar_comentario, editar_comentario
+from eliminar_documento import eliminar_documento
 
 app = Flask(__name__)
 # Puedes generar una con: os.urandom(24).hex()
@@ -589,6 +590,8 @@ def subir_documento():
     return redirect(url_for('bienvenida'))
 
 
+
+
 @app.route('/descargar_documento/<int:documento_id>')
 def descargar_documento(documento_id):
     """
@@ -681,6 +684,16 @@ def crear_comentario(id_documento):
     else:
         return jsonify({"error": "Error al guardar el comentario"}), 500
     #optener los comentarios por docuemtos
+
+@app.route('/api/documentos/<int:id_documento>', methods=['DELETE'])
+def api_eliminar_documento(id_documento):
+    if 'id' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+
+    id_usuario_actual = session['id']
+    resultado, status_code = eliminar_documento(id_documento, id_usuario_actual)
+    return jsonify(resultado), status_code
+
 @app.route('/api/documentos/<int:id_documento>/comentarios', methods=['GET'])
 def obtener_comentarios_documento(id_documento):
     comentarios = obtener_comentarios(id_documento)
