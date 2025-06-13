@@ -6,6 +6,8 @@ import uuid
 import io  # Importar io para manejar datos binarios como archivos
 import pyodbc # Importar pyodbc para la conexión a SQL Server
 
+from flask import send_file # Importar send_file para enviar archivos al navegador
+
 # Importaciones de tus módulos existentes
 from registrar_usuarios import insertar_usuario
 from buscar_usuarios import buscar_usuario_por_correo, buscar_usuario_por_id, correo_existe, buscar_usuario_por_nombre
@@ -138,6 +140,28 @@ def admin_usuarios():
     conn.close()
 
     return render_template('admin_usuarios.html', usuarios=usuarios, solicitudes=solicitudes)
+
+
+@app.route('/documento/<int:id_documento>')
+def ver_documento(id_documento):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT nombre_documento, tipo_contenido, datos_documento FROM Documentos WHERE id_documento = ?", (id_documento,))
+        row = cursor.fetchone()
+        if not row:
+            abort(404)
+
+        nombre_documento, tipo_contenido, datos_documento = row
+
+        return send_file(
+            io.BytesIO(datos_documento),
+            mimetype=tipo_contenido,
+            download_name=nombre_documento,
+            as_attachment=False
+        )
+    finally:
+        conn.close()
 
 
 @app.route('/admin/solicitud_admin/<int:id_solicitud>/<decision>', methods=['POST'])

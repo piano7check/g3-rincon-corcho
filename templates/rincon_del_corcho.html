@@ -125,13 +125,18 @@
                         <a href="{{ url_for('descargar_documento', documento_id=documento.id_documento) }}" class="download-btn">
                             <i class="fas fa-download"></i> Descargar
                         </a>
-{% if session['rol'] == 'admin' or session['id'] == documento.id_usuario %}
-    <button class="btn-eliminar" data-id="{{ documento.id_documento }}">
-        <i class="fas fa-trash"></i> Eliminar
-    </button>
-{% endif %}
+            {% if session['rol'] == 'admin' or session['id'] == documento.id_usuario %}
+                <button class="btn-eliminar" data-id="{{ documento.id_documento }}">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            {% endif %}
 
-
+        <div class="documento" style="display:inline-block; margin:10px; text-align:center;">
+            <a href="{{ url_for('ver_documento', id_documento=documento.id_documento) }}" target="_blank">
+                <img src="{{ url_for('static', filename='img/pdf_icon.png') }}" alt="PDF" style="width:80px; height:auto;">
+                <p style="max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ documento.nombre_documento }}</p>
+            </a>
+        </div>
 
 
 
