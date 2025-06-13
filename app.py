@@ -214,56 +214,50 @@ def insertar():
 
 @app.route('/bienvenida')
 def bienvenida():
-    """
-    Página principal después del login, muestra documentos y materias.
-    Requiere que el usuario esté logueado.
-    """
     if 'id' not in session:
         flash("Debes iniciar sesión para acceder a esta página.", "info") 
         return redirect(url_for('login'))
-    
+
     conn = None
     documentos = []
-    # Obtiene todas las materias para mostrarlas en las tarjetas y el modal de subida
-    materias = obtener_todas_las_materias() 
+    materias = obtener_todas_las_materias()  # ✅ No lo pierdas
 
     try:
         conn = get_connection()
-        if conn:
-            cursor = conn.cursor()
-            # Consulta para obtener los documentos con información del usuario y materia
-            cursor.execute("""
-                SELECT d.id_documento, d.nombre_documento, d.fecha_subida,
-                    u.nombre AS nombre_usuario, m.nombre_materia, m.semestre
-                FROM Documentos d
-                INNER JOIN usuarios u ON d.id_usuario = u.id_usuario
-                INNER JOIN materias m ON d.id_materia = m.id_materia
-                ORDER BY d.fecha_subida DESC;
-            """)
-            documentos_raw = cursor.fetchall() # Obtener resultados como tuplas
-            
-            # Convierte las tuplas a diccionarios para facilitar el acceso en la plantilla Jinja
-            documentos = []
-            for doc in documentos_raw:
-                documentos.append({
-                    'id_documento': doc[0],
-                    'nombre_documento': doc[1],
-                    'fecha_subida': doc[2],
-                    'nombre_usuario': doc[3],
-                    'nombre_materia': doc[4],
-                    'semestre': doc[5],
+        cursor = conn.cursor()
 
-                })
+        cursor.execute("""
+            SELECT d.id_documento, d.nombre_documento, d.fecha_subida,
+                   d.id_usuario, u.nombre AS nombre_usuario,
+                   m.nombre_materia, m.semestre
+            FROM Documentos d
+            INNER JOIN Usuarios u ON d.id_usuario = u.id_usuario
+            INNER JOIN Materias m ON d.id_materia = m.id_materia
+            ORDER BY d.fecha_subida DESC
+        """)
+
+        documentos_raw = cursor.fetchall()
+        documentos = []
+        for doc in documentos_raw:
+            documentos.append({
+                'id_documento': doc[0],
+                'nombre_documento': doc[1],
+                'fecha_subida': doc[2],
+                'id_usuario': doc[3],              # 👈 Necesario para botón eliminar
+                'nombre_usuario': doc[4],          # 👈 Usado en la plantilla
+                'nombre_materia': doc[5],
+                'semestre': doc[6],
+            })
 
     except Exception as e:
         print(f"Error al obtener documentos: {e}")
-        # flash("Error al cargar los documentos.", "error") # Eliminado para esta ruta
+        flash("Error al cargar los documentos.", "error")
     finally:
         if conn:
             conn.close()
 
-    # Pasa los documentos y las materias a la plantilla
     return render_template('rincon_del_corcho.html', materias=materias, documentos=documentos)
+
 
 # NUEVA RUTA: Para ver los documentos de una materia específica
 @app.route('/materia/<int:id_materia>')
@@ -693,6 +687,46 @@ def api_eliminar_documento(id_documento):
     id_usuario_actual = session['id']
     resultado, status_code = eliminar_documento(id_documento, id_usuario_actual)
     return jsonify(resultado), status_code
+def eliminar_documento(id_documento, id_usuario_actual):
+    conn = None
+    try:
+        conn = get_connection()
+        if conn:
+            cursor = conn.cursor()
+
+            # Primero obtener datos para verificar permisos y archivo
+            cursor.execute("SELECT id_usuario, nombre_documento FROM Documentos WHERE id_documento = ?", (id_documento,))
+            row = cursor.fetchone()
+
+            if not row:
+                return {"error": "Documento no encontrado"}, 404
+
+            id_dueño = row[0]
+            nombre_archivo = row[1]
+
+            # Verificar permisos
+            if id_dueño != id_usuario_actual and session.get('rol') != 'admin':
+                return {"error": "No tienes permiso para eliminar este documento"}, 403
+
+            # Eliminar archivo físico
+            ruta_archivo = os.path.join("ruta/a/tu/carpeta", nombre_archivo)
+            if os.path.exists(ruta_archivo):
+                os.remove(ruta_archivo)
+
+            # Eliminar registro de la base de datos
+            cursor.execute("DELETE FROM Documentos WHERE id_documento = ?", (id_documento,))
+            conn.commit()
+
+            return {"mensaje": "Documento eliminado exitosamente"}, 200
+
+    except Exception as e:
+        print(f"Error al eliminar documento: {e}")
+        return {"error": "Error interno del servidor"}, 500
+
+    finally:
+        if conn:
+            conn.close()
+
 
 @app.route('/api/documentos/<int:id_documento>/comentarios', methods=['GET'])
 def obtener_comentarios_documento(id_documento):

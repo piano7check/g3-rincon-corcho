@@ -125,9 +125,14 @@
                         <a href="{{ url_for('descargar_documento', documento_id=documento.id_documento) }}" class="download-btn">
                             <i class="fas fa-download"></i> Descargar
                         </a>
-                <button class="btn-eliminar" data-id="{{ documento.id_documento }}">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
+{% if session['rol'] == 'admin' or session['id'] == documento.id_usuario %}
+    <button class="btn-eliminar" data-id="{{ documento.id_documento }}">
+        <i class="fas fa-trash"></i> Eliminar
+    </button>
+{% endif %}
+
+
+
 
 
 
