@@ -26,16 +26,22 @@ app.secret_key = 'secreto123'
 # --- Funciones de Ayuda para la Base de Datos ---
 
 def obtener_todas_las_materias():
-    """Obtiene todas las materias con su id, nombre y semestre de la base de datos."""
+    """Obtiene todas las materias con su id, nombre, semestre y cantidad de documentos."""
     conn = None
     materias = []
     try:
         conn = get_connection()
         if conn:
             cursor = conn.cursor()
-            # Selecciona id_materia, nombre_materia y semestre para usar en la interfaz
-            cursor.execute("SELECT id_materia, nombre_materia, semestre FROM materias ORDER BY nombre_materia, semestre;")
-            materias = cursor.fetchall() # Devuelve una lista de tuplas
+            cursor.execute("""
+                SELECT m.id_materia, m.nombre_materia, m.semestre, 
+                       COUNT(d.id_documento) as cantidad_documentos
+                FROM materias m
+                LEFT JOIN documentos d ON m.id_materia = d.id_materia
+                GROUP BY m.id_materia, m.nombre_materia, m.semestre
+                ORDER BY m.nombre_materia, m.semestre;
+            """)
+            materias = cursor.fetchall() # [(id, nombre, semestre, cantidad_documentos), ...]
     except Exception as e:
         print(f"Error al obtener las materias: {e}")
     finally:

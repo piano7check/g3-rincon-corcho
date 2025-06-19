@@ -46,10 +46,9 @@
             {% if materias %}
                 {% for materia in materias %}
                 <div class="card">
-                    {# materia[1] es nombre_materia, materia[2] es semestre #}
-                    <h3>{{ materia[1] }}</h3> 
-                    <p>Semestre: {{ materia[2] }}</p> {# Muestra el semestre #}
-                    <p>0 documentos</p> {# Esto aún es un marcador de posición, para el conteo real necesitarías más lógica en app.py #}
+                    <h3>{{ materia[1] }}</h3>
+                    <p>Semestre: {{ materia[2] }}</p>
+                    <p>{{ materia[3] }} documento{{ 's' if materia[3] != 1 else '' }}</p>
                     <button>Ver más</button>
                 </div>
                 {% endfor %}
