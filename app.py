@@ -279,6 +279,7 @@ def bienvenida():
                     'nombre_materia': doc[4],
                     'semestre': doc[5],
                     'id_usuario': doc[6]
+                })  
 
         cursor.execute("""
             SELECT d.id_documento, d.nombre_documento, d.fecha_subida,
@@ -698,14 +699,7 @@ def crear_comentario(id_documento):
         return jsonify({"error": "Error al guardar el comentario"}), 500
     #optener los comentarios por docuemtos
 
-@app.route('/api/documentos/<int:id_documento>', methods=['DELETE'])
-def api_eliminar_documento(id_documento):
-    if 'id' not in session:
-        return jsonify({"error": "No autorizado"}), 401
 
-    id_usuario_actual = session['id']
-    resultado, status_code = eliminar_documento(id_documento, id_usuario_actual)
-    return jsonify(resultado), status_code
 def eliminar_documento(id_documento, id_usuario_actual):
     conn = None
     try:
