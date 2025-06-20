@@ -49,7 +49,7 @@
                     <h3>{{ materia[1] }}</h3>
                     <p>Semestre: {{ materia[2] }}</p>
                     <p>{{ materia[3] }} documento{{ 's' if materia[3] != 1 else '' }}</p>
-                    <button>Ver más</button>
+                    <button onclick="window.location.href='{{ url_for('documentos_materia', id_materia=materia[0]) }}'">Ver más</button>
                 </div>
                 {% endfor %}
             {% else %}
@@ -122,7 +122,7 @@
                             <i class="fas fa-download"></i> Descargar
                         </a>
                         {% if documento.id_usuario == session['id'] %}
-                            <button class="delete-btn" onclick="eliminarDocumento('{{ documento.id_documento }}')">
+                            <button class="btn-eliminar" data-id="{{ documento.id_documento }}">
                                 <i class="fas fa-trash-alt"></i> Eliminar
                             </button>
                         {% endif %}
