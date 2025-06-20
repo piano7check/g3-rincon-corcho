@@ -14,6 +14,9 @@
                 <a href="#" class="admin-button-crear" onclick="abrirModalCrearMateria(); return false;">
                     <i class="fas fa-folder-plus"></i> Crear Materia
                 </a>
+                <a href="{{ url_for('admin_usuarios') }}" class="admin-button-crear">
+                    <i class="fas fa-users-cog"></i> Administrar Usuarios
+                </a>
             {% endif %}
         </div>
         <div class="navbar-right">

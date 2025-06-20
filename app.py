@@ -6,6 +6,8 @@ import uuid
 import io  # Importar io para manejar datos binarios como archivos
 import pyodbc # Importar pyodbc para la conexión a SQL Server
 
+from flask import send_file # Importar send_file para enviar archivos al navegador
+
 # Importaciones de tus módulos existentes
 from registrar_usuarios import insertar_usuario
 from buscar_usuarios import buscar_usuario_por_correo, buscar_usuario_por_id, correo_existe, buscar_usuario_por_nombre
@@ -69,42 +71,132 @@ def login():
     if request.method == 'POST':
         correo = request.form['correo']
         password = request.form['password']
-        modo_admin = request.form.get('modo_admin')
-        token = request.form.get('token', '').strip()
+        solicitar_admin = request.form.get('solicitar_admin')
 
-        # Verifica las credenciales del usuario usando tu función `verificar_usuario`
+        # Verifica las credenciales del usuario usando tu función personalizada
         usuario = verificar_usuario(correo, password)
+
         if usuario:
             # Si el usuario solicita modo admin y el token es correcto
-            if modo_admin and token == 'secreto123':
+            if solicitar_admin:
                 try:
                     conn = get_connection()
                     cursor = conn.cursor()
-                    cursor.execute("UPDATE usuarios SET rol = 'admin' WHERE correo = ?", correo)
-                    conn.commit()
+
+                    cursor.execute("SELECT COUNT(*) FROM solicitudes_admin WHERE id_usuario = ? AND estado = 'pendiente'", (usuario['id'],))
+                    existe = cursor.fetchone()[0]
+
+                    if not existe:
+                        cursor.execute("INSERT INTO solicitudes_admin (id_usuario) VALUES (?)", (usuario['id'],))
+                        conn.commit()
+                        flash("Solicitud para ser administrador enviada", "info")
+                    else:
+                        flash("Ya tienes una solicitud pendiente", "warning")
+
                     cursor.close()
                     conn.close()
-                    usuario['rol'] = 'admin'  # Actualiza el dict local también
+
                 except Exception as e:
-                    print("Error actualizando rol a admin:", e)
-                    flash("No se pudo actualizar el rol a administrador.", "error")
-                    return render_template('login.html')
+                    print("Error al insertar solicitud de administrador:", e)
+                    error = "No se puede procesar la solicitud en este momento."
+                    return render_template('login.html', error=error)
+
+            # Guardar datos de sesión y redirigir
             session['id'] = usuario['id']
             session['rol'] = usuario['rol']
             flash("Inicio de sesión exitoso.", "success")
             return redirect(url_for('bienvenida'))
+
         else:
-            flash("Correo o contraseña incorrectos", "error")
-            return render_template('login.html')
-    
-    # Si la solicitud es GET, simplemente renderiza la plantilla de login
+            # ✅ Aquí se pasa el error a la plantilla para que se muestre en el HTML
+            error = "Correo o contraseña incorrectos"
+            return render_template('login.html', error=error)
+
+    # GET: solo mostrar el formulario
     return render_template('login.html')
+
 
 # NUEVA RUTA: Para el botón de "Registrarme"
 @app.route('/registro')
 def registro():
     """Renderiza la página de registro de usuarios (formulario.html)."""
-    return render_template('formulario.html') 
+    return render_template('formulario.html')
+
+@app.route('/admin/usuarios')
+def admin_usuarios():
+    if 'rol' not in session or session['rol'] != 'admin':
+        return redirect(url_for('login'))
+
+    usuarios = obtener_todos_los_usuarios()
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT id_solicitud, id_usuario, estado, fecha
+        FROM solicitudes_admin
+    """)
+    solicitudes_raw = cursor.fetchall()
+    solicitudes = [{
+        'id_solicitud': row[0],
+        'id_usuario': row[1],
+        'estado': row[2],
+        'fecha': row[3]
+    } for row in solicitudes_raw]
+    cursor.close()
+    conn.close()
+
+    return render_template('admin_usuarios.html', usuarios=usuarios, solicitudes=solicitudes)
+
+
+@app.route('/documento/<int:id_documento>')
+def ver_documento(id_documento):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT nombre_documento, tipo_contenido, datos_documento FROM Documentos WHERE id_documento = ?", (id_documento,))
+        row = cursor.fetchone()
+        if not row:
+            abort(404)
+
+        nombre_documento, tipo_contenido, datos_documento = row
+
+        return send_file(
+            io.BytesIO(datos_documento),
+            mimetype=tipo_contenido,
+            download_name=nombre_documento,
+            as_attachment=False
+        )
+    finally:
+        conn.close()
+
+
+@app.route('/admin/solicitud_admin/<int:id_solicitud>/<decision>', methods=['POST'])
+def procesar_solicitud_admin(id_solicitud, decision):
+    if 'rol' not in session or session['rol'] != 'admin':
+        return redirect(url_for('login'))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Obtener el ID del usuario de la solicitud
+    cursor.execute("SELECT id_usuario FROM solicitudes_admin WHERE id_solicitud = ?", id_solicitud)
+    row = cursor.fetchone()
+
+    if row:
+        id_usuario = row[0]
+        # Actualiza el estado
+        cursor.execute("UPDATE solicitudes_admin SET estado = ? WHERE id_solicitud = ?", (decision, id_solicitud))
+
+        # Si se acepta, se cambia el rol
+        if decision == 'aceptado':
+            cursor.execute("UPDATE usuarios SET rol = 'admin' WHERE id_usuario = ?", (id_usuario,))
+
+        conn.commit()
+
+    cursor.close()
+    conn.close()
+    return redirect(url_for('admin_usuarios'))
+
 
 @app.route('/insertar', methods=['POST'])
 def insertar():
@@ -152,18 +244,13 @@ def insertar():
 
 @app.route('/bienvenida')
 def bienvenida():
-    """
-    Página principal después del login, muestra documentos y materias.
-    Requiere que el usuario esté logueado.
-    """
     if 'id' not in session:
         flash("Debes iniciar sesión para acceder a esta página.", "info") 
         return redirect(url_for('login'))
-    
+
     conn = None
     documentos = []
-    # Obtiene todas las materias para mostrarlas en las tarjetas y el modal de subida
-    materias = obtener_todas_las_materias() 
+    materias = obtener_todas_las_materias()  # ✅ No lo pierdas
 
     try:
         conn = get_connection()
@@ -193,16 +280,36 @@ def bienvenida():
                     'semestre': doc[5],
                     'id_usuario': doc[6]
 
-                })
+        cursor.execute("""
+            SELECT d.id_documento, d.nombre_documento, d.fecha_subida,
+                   d.id_usuario, u.nombre AS nombre_usuario,
+                   m.nombre_materia, m.semestre
+            FROM Documentos d
+            INNER JOIN Usuarios u ON d.id_usuario = u.id_usuario
+            INNER JOIN Materias m ON d.id_materia = m.id_materia
+            ORDER BY d.fecha_subida DESC
+        """)
+
+        documentos_raw = cursor.fetchall()
+        documentos = []
+        for doc in documentos_raw:
+            documentos.append({
+                'id_documento': doc[0],
+                'nombre_documento': doc[1],
+                'fecha_subida': doc[2],
+                'id_usuario': doc[3],              # 👈 Necesario para botón eliminar
+                'nombre_usuario': doc[4],          # 👈 Usado en la plantilla
+                'nombre_materia': doc[5],
+                'semestre': doc[6],
+            })
 
     except Exception as e:
         print(f"Error al obtener documentos: {e}")
-        # flash("Error al cargar los documentos.", "error") # Eliminado para esta ruta
+        flash("Error al cargar los documentos.", "error")
     finally:
         if conn:
             conn.close()
 
-    # Pasa los documentos y las materias a la plantilla
     return render_template('rincon_del_corcho.html', materias=materias, documentos=documentos)
 
 # Ruta para ver los documentos de una materia específica
@@ -414,25 +521,6 @@ def buscar_por_correo_api(correo):
     else:
         abort(404, description="Usuario no encontrado")
 
-@app.route('/usuario/<int:id>', methods=['GET'])
-def buscar_por_id_api(id):
-    """API: Busca un usuario por ID."""
-    usuario = buscar_usuario_por_id(id)
-    if usuario:
-        return jsonify(usuario)
-    else:
-        abort(404, description="Usuario no encontrado")
-        
-@app.route('/hola-backend', methods=['GET'])
-def hola_backend():
-    """Ruta de prueba simple."""
-    return jsonify({"mensaje": "Hola Mundo desde el Backend"}), 200
-
-@app.route('/error-backend', methods=['GET'])
-def error_backend():
-    """Ruta para simular un error."""
-    return jsonify({"mensaje": "Adiós Mundo - Error simulado"}), 400
-
 # --- Lógica de Subida y Descarga de Documentos ---
 @app.route('/subir_documento', methods=['POST'])
 def subir_documento():
@@ -513,6 +601,8 @@ def subir_documento():
             conn.close()
     flash("Error desconocido al subir el documento.", "error")
     return redirect(url_for('bienvenida'))
+
+
 
 
 @app.route('/descargar_documento/<int:documento_id>')
@@ -607,6 +697,56 @@ def crear_comentario(id_documento):
     else:
         return jsonify({"error": "Error al guardar el comentario"}), 500
     #optener los comentarios por docuemtos
+
+@app.route('/api/documentos/<int:id_documento>', methods=['DELETE'])
+def api_eliminar_documento(id_documento):
+    if 'id' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+
+    id_usuario_actual = session['id']
+    resultado, status_code = eliminar_documento(id_documento, id_usuario_actual)
+    return jsonify(resultado), status_code
+def eliminar_documento(id_documento, id_usuario_actual):
+    conn = None
+    try:
+        conn = get_connection()
+        if conn:
+            cursor = conn.cursor()
+
+            # Primero obtener datos para verificar permisos y archivo
+            cursor.execute("SELECT id_usuario, nombre_documento FROM Documentos WHERE id_documento = ?", (id_documento,))
+            row = cursor.fetchone()
+
+            if not row:
+                return {"error": "Documento no encontrado"}, 404
+
+            id_dueño = row[0]
+            nombre_archivo = row[1]
+
+            # Verificar permisos
+            if id_dueño != id_usuario_actual and session.get('rol') != 'admin':
+                return {"error": "No tienes permiso para eliminar este documento"}, 403
+
+            # Eliminar archivo físico
+            ruta_archivo = os.path.join("ruta/a/tu/carpeta", nombre_archivo)
+            if os.path.exists(ruta_archivo):
+                os.remove(ruta_archivo)
+
+            # Eliminar registro de la base de datos
+            cursor.execute("DELETE FROM Documentos WHERE id_documento = ?", (id_documento,))
+            conn.commit()
+
+            return {"mensaje": "Documento eliminado exitosamente"}, 200
+
+    except Exception as e:
+        print(f"Error al eliminar documento: {e}")
+        return {"error": "Error interno del servidor"}, 500
+
+    finally:
+        if conn:
+            conn.close()
+
+
 @app.route('/api/documentos/<int:id_documento>/comentarios', methods=['GET'])
 def obtener_comentarios_documento(id_documento):
     comentarios = obtener_comentarios(id_documento)
@@ -712,6 +852,69 @@ def crear_materia():
         flash("Materia creada correctamente.", "success")
         return redirect(url_for('admin'))
     return render_template('crear_materia.html')
+
+
+@app.route('/usuario/<int:id>/eliminar', methods=['POST'])
+def eliminar_usuario(id):
+    if session.get('rol') != 'admin':
+        return redirect(url_for('login'))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        # Primero elimina las solicitudes asociadas
+        cursor.execute("DELETE FROM solicitudes_admin WHERE id_usuario = ?", (id,))
+        # Luego elimina el usuario
+        cursor.execute("DELETE FROM usuarios WHERE id_usuario = ?", (id,))
+        conn.commit()
+    except Exception as e:
+        print("❌ Error al eliminar usuario:", e)
+        flash("Error al eliminar el usuario.", "error")
+    finally:
+        cursor.close()
+        conn.close()
+
+    return redirect(url_for('admin_usuarios'))
+
+
+@app.route('/usuario/<int:id>/perfil')
+def ver_perfil_usuario(id):
+    if session.get('rol') != 'admin':
+        return redirect(url_for('login'))
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Obtener datos del usuario
+    cursor.execute("SELECT id_usuario, nombre, correo, rol FROM usuarios WHERE id_usuario = ?", (id,))
+    row_usuario = cursor.fetchone()
+
+    if not row_usuario:
+        flash("Usuario no encontrado.", "error")
+        return redirect(url_for('admin_usuarios'))
+
+    usuario = {
+        'id': row_usuario[0],
+        'nombre': row_usuario[1],
+        'correo': row_usuario[2],
+        'rol': row_usuario[3]
+    }
+
+    # Obtener documentos del usuario
+    cursor.execute("SELECT id_documento, nombre_documento, fecha_subida FROM documentos WHERE id_usuario = ?", (id,))
+    rows_documentos = cursor.fetchall()
+
+    documentos = [
+        {'id': d[0], 'nombre': d[1], 'fecha': d[2]} for d in rows_documentos
+    ]
+
+    cursor.close()
+    conn.close()
+
+    return render_template('perfil_usuario_admin.html', usuario=usuario, documentos=documentos)
+
+
 
 if __name__ == '__main__':
     # Ejecuta la aplicación en modo depuración (debug=True)

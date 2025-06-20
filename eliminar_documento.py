@@ -27,3 +27,4 @@ def eliminar_documento(id_documento, id_usuario_actual):
     except Exception as e:
         print("Error eliminando documento:", e)
         return {"error": "Error del servidor al eliminar el documento"}, 500
+

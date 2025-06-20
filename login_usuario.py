@@ -1,6 +1,12 @@
 from conexion_database import get_connection
 import bcrypt
 
+import bcrypt
+
+# Tu contraseña en texto plano
+password = "Admin@123456"
+
+
 def verificar_usuario(correo, password):
     try:
         conn = get_connection()

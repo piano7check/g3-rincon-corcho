@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Perfil del Usuario</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+    <div class="main-container">
+        <h2>👤 Perfil del Usuario</h2>
+        
+        <p><strong>ID:</strong> {{ usuario.id }}</p>
+        <p><strong>Nombre:</strong> {{ usuario.nombre }}</p>
+        <p><strong>Correo:</strong> {{ usuario.correo }}</p>
+        <p><strong>Rol:</strong> {{ usuario.rol }}</p>
+
+        <h3>📄 Documentos Subidos</h3>
+        {% if documentos %}
+        <ul>
+            {% for doc in documentos %}
+            <li>{{ doc.nombre }} ({{ doc.fecha }})</li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>Este usuario no ha subido documentos.</p>
+        {% endif %}
+
+        <a href="{{ url_for('admin_usuarios') }}">← Volver a administración</a>
+    </div>
+</body>
+</html>

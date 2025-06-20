@@ -97,7 +97,29 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     });
+
+    // Validación al perder el foco en el campo de correo
+correo.addEventListener("blur", async function () {
+    if (!validarCorreo(correo.value)) {
+        mostrarError(correo, correoError, "Debe terminar en @uab.edu.bo");
+    } else {
+        const correoExiste = await verificarCorreo(correo.value);
+        if (correoExiste) {
+            mostrarError(correo, correoError, "El correo ya está registrado.");
+        } else {
+            limpiarError(correo, correoError);
+        }
+    }
 });
+
+});
+
+// Función para verificar si el correo ya existe
+async function verificarCorreo(correo) {
+    const response = await fetch(`/buscar/${encodeURIComponent(correo)}`);
+    return response.ok;
+}
+
 
 // Función para verificar si el nombre ya existe en la base de datos
 async function verificarNombre(nombre) {
