@@ -116,6 +116,7 @@
                     {% for documento in documentos %}
                     <li class="document-item">
                         <span class="document-info">
+                            <img src="{{ url_for('static', filename='img/pdf_icon.png') }}" alt="PDF" style="width:24px;vertical-align:middle;margin-right:6px;">
                             <strong>{{ documento.nombre_documento }}</strong> <br>
                             Subido por: {{ documento.nombre_usuario }} <br>
                             Materia: {{ documento.nombre_materia }} ({{ documento.semestre }}) <br>
@@ -124,7 +125,8 @@
                         <a href="{{ url_for('descargar_documento', documento_id=documento.id_documento) }}" class="download-btn">
                             <i class="fas fa-download"></i> Descargar
                         </a>
-                        {% if documento.id_usuario == session['id'] %}
+                        <button class="view-pdf-btn" data-pdf-url="{{ url_for('ver_pdf', documento_id=documento.id_documento) }}">Ver PDF</button>
+                        {% if session['rol'] == 'admin' or documento.id_usuario == session['id'] %}
                             <button class="btn-eliminar" data-id="{{ documento.id_documento }}">
                                 <i class="fas fa-trash-alt"></i> Eliminar
                             </button>
@@ -149,6 +151,14 @@
             {% else %}
                 <p>No hay documentos subidos aún.</p>
             {% endif %}
+        </div>
+
+        <!-- Modal para visualizar PDF -->
+        <div id="pdfModal" class="modal">
+            <div class="modal-content" style="max-width:90vw;max-height:90vh;">
+                <span class="close-button" id="closePdfModal">&times;</span>
+                <iframe id="pdfViewer" src="" width="100%" height="600px" style="border:none;"></iframe>
+            </div>
         </div>
     </main>
 
@@ -237,6 +247,37 @@
             var modal = document.getElementById('modalCrearMateria');
             if (event.target == modal) {
                 modal.style.display = "none";
+            }
+        }
+
+        // Lógica para el visor PDF
+        const pdfModal = document.getElementById('pdfModal');
+        const pdfViewer = document.getElementById('pdfViewer');
+        const closePdfModal = document.getElementById('closePdfModal');
+        document.querySelectorAll('.view-pdf-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                pdfViewer.src = this.getAttribute('data-pdf-url');
+                pdfModal.style.display = 'block';
+            });
+        });
+        closePdfModal.onclick = function() {
+            pdfModal.style.display = 'none';
+            pdfViewer.src = '';
+        }
+        window.onclick = function(event) {
+            if (event.target == pdfModal) {
+                pdfModal.style.display = 'none';
+                pdfViewer.src = '';
+            }
+            // Cierra el modal de crear materia si se hace clic fuera de él
+            var modalCrear = document.getElementById('modalCrearMateria');
+            if (event.target == modalCrear) {
+                modalCrear.style.display = "none";
+            }
+            // Cierra el modal de subir documento si se hace clic fuera de él
+            var modalUpload = document.getElementById('uploadModal');
+            if (event.target == modalUpload) {
+                modalUpload.style.display = "none";
             }
         }
     </script>

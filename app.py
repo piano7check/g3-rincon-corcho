@@ -19,7 +19,6 @@ from eliminar_usuario import eliminar_usuario_por_id
 from carpetas_usuario import obtener_carpetas_usuario
 from conexion_database import get_connection # Asumo que esta función existe en tu modulo y maneja la conexión a la DB
 from comentarios import agregar_comentario, obtener_comentarios, eliminar_comentario, editar_comentario
-from eliminar_documento import eliminar_documento
 
 app = Flask(__name__)
 # Puedes generar una con: os.urandom(24).hex()
@@ -279,6 +278,7 @@ def bienvenida():
                     'nombre_materia': doc[4],
                     'semestre': doc[5],
                     'id_usuario': doc[6]
+                })
 
         cursor.execute("""
             SELECT d.id_documento, d.nombre_documento, d.fecha_subida,
@@ -724,13 +724,13 @@ def eliminar_documento(id_documento, id_usuario_actual):
             nombre_archivo = row[1]
 
             # Verificar permisos
-            if id_dueño != id_usuario_actual and session.get('rol') != 'admin':
+            if session.get('rol') != 'admin' and id_dueño != id_usuario_actual:
                 return {"error": "No tienes permiso para eliminar este documento"}, 403
 
-            # Eliminar archivo físico
-            ruta_archivo = os.path.join("ruta/a/tu/carpeta", nombre_archivo)
-            if os.path.exists(ruta_archivo):
-                os.remove(ruta_archivo)
+            # Eliminar archivo físico (si aplica, aquí solo es ejemplo)
+            # ruta_archivo = os.path.join("ruta/a/tu/carpeta", nombre_archivo)
+            # if os.path.exists(ruta_archivo):
+            #     os.remove(ruta_archivo)
 
             # Eliminar registro de la base de datos
             cursor.execute("DELETE FROM Documentos WHERE id_documento = ?", (id_documento,))
@@ -824,15 +824,6 @@ def verificar_usuario(correo, password):
         print("Error al verificar usuario:", e)
         return None
 
-@app.route('/api/documentos/<int:id_documento>', methods=['DELETE'])
-def api_eliminar_documento(id_documento):
-    if 'id' not in session:
-        return jsonify({"error": "No autorizado"}), 401
-
-    id_usuario_actual = session['id']
-    resultado, status_code = eliminar_documento(id_documento, id_usuario_actual)
-    return jsonify(resultado), status_code
-
 
 
 # Ruta para crear una nueva materia (solo accesible por administradores)
@@ -913,6 +904,38 @@ def ver_perfil_usuario(id):
     conn.close()
 
     return render_template('perfil_usuario_admin.html', usuario=usuario, documentos=documentos)
+
+@app.route('/ver_pdf/<int:documento_id>')
+def ver_pdf(documento_id):
+    """
+    Permite visualizar un documento PDF en el navegador (sin forzar descarga).
+    """
+    conn = None
+    try:
+        conn = get_connection()
+        if conn is None:
+            abort(500, description="Error: No se pudo conectar a la base de datos para visualizar el archivo.")
+
+        cursor = conn.cursor()
+        sql_select = "SELECT nombre_documento, tipo_contenido, datos_documento FROM Documentos WHERE id_documento = ?;"
+        cursor.execute(sql_select, documento_id)
+        row = cursor.fetchone()
+
+        if row:
+            tipo_contenido = row.tipo_contenido
+            datos_documento_binarios = io.BytesIO(row.datos_documento)
+            if tipo_contenido == 'application/pdf':
+                return send_file(datos_documento_binarios, mimetype='application/pdf')
+            else:
+                abort(415, description="El documento no es un PDF.")
+        else:
+            abort(404, description="Documento no encontrado.")
+    except Exception as e:
+        print(f"Error al visualizar el documento: {e}")
+        abort(500, description=f"Error al visualizar el documento: {e}")
+    finally:
+        if conn:
+            conn.close()
 
 
 
