@@ -28,16 +28,22 @@ app.secret_key = 'secreto123'
 # --- Funciones de Ayuda para la Base de Datos ---
 
 def obtener_todas_las_materias():
-    """Obtiene todas las materias con su id, nombre y semestre de la base de datos."""
+    """Obtiene todas las materias con su id, nombre, semestre y cantidad de documentos."""
     conn = None
     materias = []
     try:
         conn = get_connection()
         if conn:
             cursor = conn.cursor()
-            # Selecciona id_materia, nombre_materia y semestre para usar en la interfaz
-            cursor.execute("SELECT id_materia, nombre_materia, semestre FROM materias ORDER BY nombre_materia, semestre;")
-            materias = cursor.fetchall() # Devuelve una lista de tuplas
+            cursor.execute("""
+                SELECT m.id_materia, m.nombre_materia, m.semestre, 
+                       COUNT(d.id_documento) as cantidad_documentos
+                FROM materias m
+                LEFT JOIN documentos d ON m.id_materia = d.id_materia
+                GROUP BY m.id_materia, m.nombre_materia, m.semestre
+                ORDER BY m.nombre_materia, m.semestre;
+            """)
+            materias = cursor.fetchall() # [(id, nombre, semestre, cantidad_documentos), ...]
     except Exception as e:
         print(f"Error al obtener las materias: {e}")
     finally:
@@ -248,7 +254,31 @@ def bienvenida():
 
     try:
         conn = get_connection()
-        cursor = conn.cursor()
+        if conn:
+            cursor = conn.cursor()
+            # Consulta para obtener los documentos con información del usuario y materia
+            cursor.execute("""
+                SELECT d.id_documento, d.nombre_documento, d.fecha_subida,
+                u.nombre AS nombre_usuario, m.nombre_materia, m.semestre,
+                d.id_usuario  -- <- agregado al final
+                FROM documentos d
+                INNER JOIN usuarios u ON d.id_usuario = u.id_usuario
+                INNER JOIN materias m ON d.id_materia = m.id_materia
+                ORDER BY d.fecha_subida DESC;
+            """)
+            documentos_raw = cursor.fetchall() # Obtener resultados como tuplas
+            
+            # Convierte las tuplas a diccionarios para facilitar el acceso en la plantilla Jinja
+            documentos = []
+            for doc in documentos_raw:
+                documentos.append({
+                    'id_documento': doc[0],
+                    'nombre_documento': doc[1],
+                    'fecha_subida': doc[2],
+                    'nombre_usuario': doc[3],
+                    'nombre_materia': doc[4],
+                    'semestre': doc[5],
+                    'id_usuario': doc[6]
 
         cursor.execute("""
             SELECT d.id_documento, d.nombre_documento, d.fecha_subida,
@@ -282,64 +312,29 @@ def bienvenida():
 
     return render_template('rincon_del_corcho.html', materias=materias, documentos=documentos)
 
-
-# NUEVA RUTA: Para ver los documentos de una materia específica
+# Ruta para ver los documentos de una materia específica
 @app.route('/materia/<int:id_materia>')
-def ver_materia(id_materia):
-    """
-    Muestra los documentos asociados a una materia específica.
-    """
+def documentos_materia(id_materia):
     if 'id' not in session:
-        flash("Debes iniciar sesión para ver documentos de materias.", "info")
+        flash('Debes iniciar sesión para ver los documentos de la materia.', 'warning')
         return redirect(url_for('login'))
 
-    conn = None
-    documentos_materia = []
-    materia_info = None
-    try:
-        conn = get_connection()
-        if conn:
-            cursor = conn.cursor()
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT nombre_materia, semestre FROM materias WHERE id_materia = ?", id_materia)
+    materia = cursor.fetchone()
 
-            # Obtener información de la materia
-            cursor.execute("SELECT id_materia, nombre_materia, semestre FROM materias WHERE id_materia = ?", id_materia)
-            materia_data = cursor.fetchone()
-            if materia_data:
-                materia_info = {
-                    'id_materia': materia_data[0],
-                    'nombre_materia': materia_data[1],
-                    'semestre': materia_data[2]
-                }
-            else:
-                flash("Materia no encontrada.", "error")
-                return redirect(url_for('bienvenida')) # Redirige si la materia no existe
+    cursor.execute("""
+        SELECT d.id_documento, d.nombre_documento, d.fecha_subida, d.id_usuario, u.nombre AS nombre_usuario
+        FROM documentos d
+        JOIN usuarios u ON d.id_usuario = u.id_usuario
+        WHERE d.id_materia = ?
+        ORDER BY d.fecha_subida DESC
+    """, id_materia)
+    documentos = cursor.fetchall()
+    conn.close()
 
-            # Obtener documentos para esa materia
-            cursor.execute("""
-                SELECT d.id_documento, d.nombre_documento, d.fecha_subida, u.nombre AS nombre_usuario
-                FROM Documentos d
-                INNER JOIN usuarios u ON d.id_usuario = u.id_usuario
-                WHERE d.id_materia = ?
-                ORDER BY d.fecha_subida DESC;
-            """, id_materia)
-            documentos_raw = cursor.fetchall()
-            
-            for doc in documentos_raw:
-                documentos_materia.append({
-                    'id_documento': doc[0],
-                    'nombre_documento': doc[1],
-                    'fecha_subida': doc[2],
-                    'nombre_usuario': doc[3]
-                })
-
-    except Exception as e:
-        print(f"Error al obtener documentos de la materia: {e}")
-        flash(f"Error al cargar los documentos de la materia: {e}", "error")
-    finally:
-        if conn:
-            conn.close()
-    
-    return render_template('documentos_materia.html', materia=materia_info, documentos=documentos_materia)
+    return render_template('documentos_materia.html', materia=materia, documentos=documentos)
 
 
 @app.route('/admin')
@@ -828,6 +823,17 @@ def verificar_usuario(correo, password):
     except Exception as e:
         print("Error al verificar usuario:", e)
         return None
+
+@app.route('/api/documentos/<int:id_documento>', methods=['DELETE'])
+def api_eliminar_documento(id_documento):
+    if 'id' not in session:
+        return jsonify({"error": "No autorizado"}), 401
+
+    id_usuario_actual = session['id']
+    resultado, status_code = eliminar_documento(id_documento, id_usuario_actual)
+    return jsonify(resultado), status_code
+
+
 
 # Ruta para crear una nueva materia (solo accesible por administradores)
 @app.route('/admin/crear_materia', methods=['GET', 'POST'])

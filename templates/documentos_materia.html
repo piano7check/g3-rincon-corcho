@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Documentos de {{ materia[0] }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='estilos.css') }}">
+</head>
+<body>
+    <header class="navbar">
+        <div class="navbar-left">
+            <a href="{{ url_for('bienvenida') }}" class="profile-button">← Volver</a>
+        </div>
+        <div class="navbar-title">
+            Documentos de {{ materia[0] }} (Semestre {{ materia[1] }})
+        </div>
+        <div class="navbar-right"></div>
+    </header>
+    <main class="main-container">
+        <h2>Documentos de {{ materia[0] }}</h2>
+        <div class="documents-list">
+            {% if documentos %}
+                <ul>
+                    {% for documento in documentos %}
+                    <li class="document-item">
+                        <span class="document-info">
+                            <strong>{{ documento.nombre_documento }}</strong> <br>
+                            Subido por: {{ documento.nombre_usuario }} <br>
+                            Fecha: {{ documento.fecha_subida.strftime('%Y-%m-%d %H:%M') if documento.fecha_subida else 'Sin fecha' }}
+                        </span>
+                        <a href="{{ url_for('descargar_documento', documento_id=documento.id_documento) }}" class="download-btn">
+                            <i class="fas fa-download"></i> Descargar
+                        </a>
+                        {% if session['rol'] == 'admin' or session['id'] == documento.id_usuario %}
+                        <button class="btn-eliminar" data-id="{{ documento.id_documento }}">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                        {% endif %}
+                        <button class="toggle-comments-btn" data-id="{{ documento.id_documento }}">
+                            Comentarios
+                        </button>
+                        <div class="comentarios-container" id="comentarios-{{ documento.id_documento }}" style="display: none;">
+                            <div class="comentarios-list" id="comentarios-list-{{ documento.id_documento }}"></div>
+                            <form class="comentario-form" data-id="{{ documento.id_documento }}">
+                                <textarea name="contenido" placeholder="Escribe tu comentario..." required></textarea>
+                                <button type="submit">Enviar</button>
+                            </form>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No hay documentos en esta materia.</p>
+            {% endif %}
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='comentarios.js') }}"></script>
+    <script src="{{ url_for('static', filename='eliminar_documento.js') }}"></script>
+</body>
+</html>

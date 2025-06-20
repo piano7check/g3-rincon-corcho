@@ -49,11 +49,10 @@
             {% if materias %}
                 {% for materia in materias %}
                 <div class="card">
-                    {# materia[1] es nombre_materia, materia[2] es semestre #}
-                    <h3>{{ materia[1] }}</h3> 
-                    <p>Semestre: {{ materia[2] }}</p> {# Muestra el semestre #}
-                    <p>0 documentos</p> {# Esto aún es un marcador de posición, para el conteo real necesitarías más lógica en app.py #}
-                    <button>Ver más</button>
+                    <h3>{{ materia[1] }}</h3>
+                    <p>Semestre: {{ materia[2] }}</p>
+                    <p>{{ materia[3] }} documento{{ 's' if materia[3] != 1 else '' }}</p>
+                    <button onclick="window.location.href='{{ url_for('documentos_materia', id_materia=materia[0]) }}'">Ver más</button>
                 </div>
                 {% endfor %}
             {% else %}
@@ -125,22 +124,11 @@
                         <a href="{{ url_for('descargar_documento', documento_id=documento.id_documento) }}" class="download-btn">
                             <i class="fas fa-download"></i> Descargar
                         </a>
-            {% if session['rol'] == 'admin' or session['id'] == documento.id_usuario %}
-                <button class="btn-eliminar" data-id="{{ documento.id_documento }}">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
-            {% endif %}
-
-        <div class="documento" style="display:inline-block; margin:10px; text-align:center;">
-            <a href="{{ url_for('ver_documento', id_documento=documento.id_documento) }}" target="_blank">
-                <img src="{{ url_for('static', filename='img/pdf_icon.png') }}" alt="PDF" style="width:80px; height:auto;">
-                <p style="max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ documento.nombre_documento }}</p>
-            </a>
-        </div>
-
-
-
-
+                        {% if documento.id_usuario == session['id'] %}
+                            <button class="btn-eliminar" data-id="{{ documento.id_documento }}">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        {% endif %}
                         <!-- Botón para mostrar/ocultar comentarios -->
                         <button class="toggle-comments-btn" data-id="{{ documento.id_documento }}">
                             Comentarios
@@ -255,7 +243,6 @@
     <script src="{{ url_for('static', filename='modales.js') }}"></script>
 </body>
 <script src="{{ url_for('static', filename='comentarios.js') }}"></script>
-
 <script src="{{ url_for('static', filename='eliminar_documento.js') }}"></script>
 
 </html>
